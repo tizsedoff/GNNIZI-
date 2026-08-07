@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   Package, 
   Plus, 
@@ -16,10 +16,12 @@ import {
   FileText,
   DollarSign,
   PackageCheck,
-  Lock
+  Lock,
+  Upload
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Product, Category, Order } from '../types';
+import { supabase } from '../supabaseClient';
 
 export const InventoryAdmin: React.FC = () => {
   const { 
@@ -56,6 +58,10 @@ export const InventoryAdmin: React.FC = () => {
   const [formImage, setFormImage] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formBadge, setFormBadge] = useState<Product['badge'] | undefined>(undefined);
+
+  // Carga de foto desde archivos / galería
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const inputFotoRef = useRef<HTMLInputElement>(null);
 
   const categories: Category[] = ['Bazar', 'Papelería', 'Hogar', 'Regalería', 'Oficina', 'Novedades'];
 
@@ -104,6 +110,39 @@ export const InventoryAdmin: React.FC = () => {
     setFormDescription(p.description);
     setFormBadge(p.badge);
     setIsModalOpen(true);
+  };
+
+  // Sube la foto elegida (archivos o galería) al bucket de Supabase y completa formImage con la URL pública
+  const handleFotoSeleccionada = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archivo = e.target.files ? e.target.files[0] : null;
+    if (!archivo) return;
+
+    setSubiendoFoto(true);
+    try {
+      const extension = archivo.name.includes('.')
+        ? archivo.name.split('.').pop()
+        : 'jpg';
+      const nombreLimpio = `${Date.now()}.${extension}`;
+
+      const { error: errorSubida } = await supabase.storage
+        .from('productos-fotos')
+        .upload(nombreLimpio, archivo);
+
+      if (errorSubida) throw errorSubida;
+
+      const { data: urlData } = supabase.storage
+        .from('productos-fotos')
+        .getPublicUrl(nombreLimpio);
+
+      setFormImage(urlData.publicUrl);
+      showToast('📷 Foto subida con éxito');
+    } catch (err: any) {
+      console.error(err);
+      showToast(`No se pudo subir la foto: ${err?.message || 'error desconocido'}`);
+    } finally {
+      setSubiendoFoto(false);
+      if (inputFotoRef.current) inputFotoRef.current.value = '';
+    }
   };
 
   const handleSaveProduct = (e: React.FormEvent) => {
@@ -645,8 +684,41 @@ export const InventoryAdmin: React.FC = () => {
                 </div>
               </div>
 
+              {/* Foto del producto: subida desde archivos/galería + URL manual opcional */}
               <div>
-                <label className="block font-bold text-neutral-700 mb-1">URL de Imagen (Unsplash o CDN)</label>
+                <label className="block font-bold text-neutral-700 mb-1">Foto del Producto</label>
+
+                <div className="flex items-center gap-3 mb-2">
+                  {formImage && (
+                    <img
+                      src={formImage}
+                      alt="Vista previa"
+                      className="w-16 h-16 rounded-xl object-cover border border-neutral-200 shrink-0"
+                    />
+                  )}
+
+                  <input
+                    ref={inputFotoRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFotoSeleccionada}
+                    className="hidden"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => inputFotoRef.current?.click()}
+                    disabled={subiendoFoto}
+                    className="flex-1 py-2.5 rounded-xl border border-neutral-300 font-bold text-neutral-700 hover:bg-neutral-100 flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {subiendoFoto ? 'Subiendo...' : 'Elegir foto (galería o archivos)'}
+                  </button>
+                </div>
+
+                <label className="block text-[10px] font-semibold text-neutral-400 mb-1">
+                  o pegá una URL de imagen (Unsplash, CDN, etc.)
+                </label>
                 <input
                   type="url"
                   value={formImage}

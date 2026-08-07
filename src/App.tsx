@@ -1,4 +1,6 @@
 import React from 'react';
+import ProductForm from './components/ProductForm';
+import ProductList from './components/ProductList';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -32,7 +34,26 @@ const MainContent: React.FC = () => {
         {activeView === 'policies' && <PoliciesPage />}
         {activeView === 'contact' && <ContactSection />}
         {activeView === 'inventory-admin' && (
-          isAdmin ? <InventoryAdmin /> : <ProductCatalog />
+          isAdmin ? (
+            <>
+              <InventoryAdmin />
+
+              {/* Gestión de fotos de productos (Supabase) */}
+              <div className="max-w-4xl mx-auto px-4 py-10">
+                <h2 className="text-xl font-bold mb-4">
+                  Cargar producto con foto
+                </h2>
+                <ProductForm />
+
+                <h2 className="text-xl font-bold mt-10 mb-4">
+                  Productos cargados
+                </h2>
+                <ProductList />
+              </div>
+            </>
+          ) : (
+            <ProductCatalog />
+          )
         )}
       </main>
 

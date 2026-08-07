@@ -137,7 +137,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const loginAdmin = (password: string): boolean => {
-    if (password.trim().toLowerCase() === 'aps') {
+    if (password.trim().toLowerCase() === 'giannizi') {
       setIsAdmin(true);
       setIsAdminModalOpen(false);
       setActiveView('inventory-admin');
