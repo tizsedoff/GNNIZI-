@@ -1,0 +1,6 @@
+{
+  "name": "GIANNIZI Imports",
+  "description": "Sitio web oficial y tienda e-commerce multirubro de GIANNIZI Imports con carrito, inventario, blog, medios de pago y políticas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
