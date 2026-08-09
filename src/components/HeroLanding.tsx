@@ -148,31 +148,35 @@ export const HeroLanding: React.FC = () => {
             <div className="lg:col-span-5 relative">
               <div className="relative mx-auto max-w-md lg:max-w-none rounded-2xl overflow-hidden border border-neutral-800 shadow-2xl bg-neutral-900">
                 <img 
-                  src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=1000&q=80" 
-                  alt="GIANNIZI Imports Bazar & Papeleria" 
+                  src={featuredProducts[0]?.image || 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=1000&q=80'} 
+                  alt={featuredProducts[0]?.name || 'GIANNIZI Imports Bazar & Papeleria'} 
                   className="w-full h-[380px] sm:h-[420px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/20 to-transparent"></div>
                 
-                {/* Floating Tag */}
-                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-neutral-900/90 backdrop-blur-md border border-neutral-700 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">
-                      Destacado del Mes
-                    </span>
-                    <h4 className="text-white font-bold text-sm"></h4>
-                    <p className="text-xs text-neutral-300">$14.500 <span className="text-[10px] text-neutral-400">(Mayorista $10.800)</span></p>
+                {/* Floating Tag: solo se muestra si hay un producto destacado real cargado en Supabase */}
+                {featuredProducts[0] && (
+                  <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-neutral-900/90 backdrop-blur-md border border-neutral-700 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">
+                        Destacado del Mes
+                      </span>
+                      <h4 className="text-white font-bold text-sm">{featuredProducts[0].name}</h4>
+                      <p className="text-xs text-neutral-300">
+                        ${featuredProducts[0].price.toLocaleString('es-AR')}
+                        {featuredProducts[0].wholesalePrice && (
+                          <span className="text-[10px] text-neutral-400"> (Mayorista ${featuredProducts[0].wholesalePrice.toLocaleString('es-AR')})</span>
+                        )}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => addToCart(featuredProducts[0], 1)}
+                      className="bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold px-3 py-2 rounded-lg transition-colors shrink-0"
+                    >
+                      + Agregar
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      const prod = products.find(p => p.id === 'prod-1');
-                      if (prod) addToCart(prod, 1);
-                    }}
-                    className="bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold px-3 py-2 rounded-lg transition-colors shrink-0"
-                  >
-                    + Agregar
-                  </button>
-                </div>
+                )}
               </div>
             </div>
 
