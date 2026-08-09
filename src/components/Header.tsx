@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Category, ActiveView } from '../types';
+import logoGiannizi from '../assets/logo.jpg';
 
 export const Header: React.FC = () => {
   const { 
@@ -74,13 +75,13 @@ export const Header: React.FC = () => {
 
           <div className="flex items-center gap-3 text-xs text-neutral-300">
             <a 
-              href="https://wa.me/5493755301413?text=Hola%20GIANNIZI%20Imports,%20quisiera%20hacer%20una%20consulta" 
+              href="https://wa.me/5491123456789?text=Hola%20GIANNIZI%20Imports,%20quisiera%20hacer%20una%20consulta" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center gap-1 hover:text-white transition-colors"
             >
               <PhoneCall className="w-3 h-3 text-emerald-400" />
-              <span>Atención Directa: +54 9 3755 30-1413</span>
+              <span>Atención Directa: +54 9 11 2345-6789</span>
             </a>
 
             <button
@@ -126,9 +127,11 @@ export const Header: React.FC = () => {
             onClick={() => handleNav('landing')}
             className="cursor-pointer flex items-center gap-2 group shrink-0"
           >
-            <div className="w-10 h-10 rounded-xl bg-neutral-900 text-amber-400 flex items-center justify-center font-bold text-xl tracking-wider shadow-md group-hover:scale-105 transition-transform border border-amber-400/20">
-              G
-            </div>
+            <img
+              src={logoGiannizi}
+              alt="GIANNIZI Imports"
+              className="w-11 h-11 object-contain group-hover:scale-105 transition-transform"
+            />
             <div>
               <span className="text-xl sm:text-2xl font-black tracking-tight text-neutral-900 block leading-none font-display">
                 GIANNIZI <span className="text-amber-600 font-light text-lg sm:text-xl">IMPORTS</span>
