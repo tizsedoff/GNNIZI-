@@ -352,7 +352,7 @@ export const HeroLanding: React.FC = () => {
             </div>
             <div className="pt-4">
               <a
-                href="https://wa.me/5491123456789?text=Hola%20GIANNIZI%20Imports,%20quisiera%20solicitar%20el%20catálogo%20y%20condiciones%20mayoristas"
+                href="https://wa.me/5493755301413?text=Hola%20GIANNIZI%20Imports,%20quisiera%20solicitar%20el%20catálogo%20y%20condiciones%20mayoristas"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-lg"

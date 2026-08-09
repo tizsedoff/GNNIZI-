@@ -172,7 +172,7 @@ export const Footer: React.FC = () => {
                   <Facebook className="w-4 h-4" />
                 </a>
                 <a 
-                  href="https://wa.me/5491123456789" 
+                  href="https://wa.me/5493755301413" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="w-9 h-9 rounded-lg bg-emerald-950 border border-emerald-800 flex items-center justify-center text-emerald-400 hover:bg-emerald-900 transition-colors"
@@ -268,7 +268,7 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Ventas: +54 9 11 2345-6789</span>
+                <span>Ventas: +54 9 3755 30-1413</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-amber-400 shrink-0" />

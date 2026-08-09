@@ -102,7 +102,7 @@ export const CheckoutModal: React.FC = () => {
 
 Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
 
-    return `https://wa.me/5491123456789?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/5493755301413?text=${encodeURIComponent(text)}`;
   };
 
   return (

@@ -65,7 +65,7 @@ export const ContactSection: React.FC = () => {
                 </div>
                 <div>
                   <strong className="block text-neutral-900 text-sm font-bold">WhatsApp Directo:</strong>
-                  <span>+54 9 11 2345-6789</span>
+                  <span>+54 9 3755 30-1413</span>
                 </div>
               </div>
 
@@ -92,7 +92,7 @@ export const ContactSection: React.FC = () => {
 
             {/* Direct WhatsApp Launcher Button */}
             <a
-              href="https://wa.me/5491123456789?text=Hola%20GIANNIZI%20Imports!%20Quisiera%20hacer%20una%20consulta"
+              href="https://wa.me/5493755301413?text=Hola%20GIANNIZI%20Imports!%20Quisiera%20hacer%20una%20consulta"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors text-xs shadow-md"
