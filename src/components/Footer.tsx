@@ -16,6 +16,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import logoGiannizi from '../../assets/logo.jpg';
 
 export const Footer: React.FC = () => {
   const { setActiveView, setSelectedCategory, subscribeNewsletter } = useApp();
@@ -136,8 +137,8 @@ export const Footer: React.FC = () => {
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-amber-500 text-neutral-950 font-black text-lg flex items-center justify-center">
-                G
+              <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center shrink-0 p-1">
+                <img src={logoGiannizi} alt="GIANNIZI Imports" className="w-full h-full object-contain" />
               </div>
               <span className="text-xl font-black text-white tracking-wider">
                 GIANNIZI <span className="text-amber-400 font-light">IMPORTS</span>

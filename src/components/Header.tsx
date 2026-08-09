@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Category, ActiveView } from '../types';
-import logoGiannizi from '../assets/logo.jpg';
+import logoGiannizi from '../../assets/logo.jpg';
 
 export const Header: React.FC = () => {
   const { 
