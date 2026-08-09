@@ -155,7 +155,8 @@ export const ContactSection: React.FC = () => {
                     <label className="block text-neutral-700 font-semibold mb-1">Teléfono</label>
                     <input
                       type="tel"
-                      placeholder="+54 11 1234-5678"
+                      placeholder="+54 11 3755 301413" 
+                     
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"

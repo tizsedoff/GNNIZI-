@@ -174,7 +174,7 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                   <input
                     type="tel"
                     required
-                    placeholder="+54 9 11 1234-5678"
+                    placeholder="+54 9 11 3755 301413"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
