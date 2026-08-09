@@ -737,6 +737,22 @@ export const InventoryAdmin: React.FC = () => {
                 />
               </div>
 
+              <div>
+                <label className="block font-bold text-neutral-700 mb-1">Distintivo (opcional)</label>
+                <select
+                  value={formBadge || ''}
+                  onChange={(e) =>
+                    setFormBadge(e.target.value ? (e.target.value as Product['badge']) : undefined)
+                  }
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-bold"
+                >
+                  <option value="">Sin distintivo</option>
+                  <option value="Nuevo">Nuevo</option>
+                  <option value="Más Vendido">Más Vendido (aparece como Destacado en el inicio)</option>
+                  <option value="Oferta">Oferta</option>
+                </select>
+              </div>
+
               <div className="pt-3 border-t border-neutral-100 flex gap-2">
                 <button
                   type="button"
