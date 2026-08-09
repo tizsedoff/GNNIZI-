@@ -22,7 +22,7 @@ const MainContent: React.FC = () => {
   const { activeView, toastMessage, isAdmin } = useApp();
 
   return (
-    <div className="min-h-screen bg-neutral-100 flex flex-col font-sans text-neutral-900 selection:bg-amber-400 selection:text-neutral-950">
+    <div className="min-h-screen bg-neutral-100 flex flex-col font-sans text-neutral-900 selection:bg-amber-400 selection:text-neutral-950 overflow-x-hidden">
       <Header />
 
       <main className="flex-1">

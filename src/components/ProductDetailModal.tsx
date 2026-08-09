@@ -1,14 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ShoppingBag, ShieldCheck, Truck, AlertTriangle, Check, Heart, Tag } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const ProductDetailModal: React.FC = () => {
   const { quickViewProduct, setQuickViewProduct, addToCart, wishlist, toggleWishlist } = useApp();
   const [qty, setQty] = useState(1);
-
-  if (!quickViewProduct) return null;
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const product = quickViewProduct;
+
+  const images = product
+    ? (product.images && product.images.length > 0 ? product.images : [product.image])
+    : [];
+
+  useEffect(() => {
+    setSelectedImageIndex(0);
+    setQty(1);
+  }, [product?.id]);
+
+  if (!product) return null;
+
   const isFav = wishlist.includes(product.id);
   const isOut = product.stock <= 0;
 
@@ -31,17 +42,36 @@ export const ProductDetailModal: React.FC = () => {
           <X className="w-4 h-4" />
         </button>
 
-        {/* Product Image */}
-        <div className="md:w-1/2 relative bg-neutral-100 min-h-[280px]">
-          <img 
-            src={product.image} 
-            alt={product.name} 
-            className="w-full h-full object-cover"
-          />
-          {product.badge && (
-            <span className="absolute top-4 left-4 bg-neutral-900 text-amber-400 font-bold text-xs uppercase px-3 py-1 rounded-full shadow-md">
-              {product.badge}
-            </span>
+        {/* Product Image + Gallery */}
+        <div className="md:w-1/2 relative bg-neutral-100 min-h-[280px] flex flex-col">
+          <div className="relative flex-1 min-h-[280px]">
+            <img 
+              src={images[selectedImageIndex]} 
+              alt={product.name} 
+              className="w-full h-full object-cover absolute inset-0"
+            />
+            {product.badge && (
+              <span className="absolute top-4 left-4 bg-neutral-900 text-amber-400 font-bold text-xs uppercase px-3 py-1 rounded-full shadow-md">
+                {product.badge}
+              </span>
+            )}
+          </div>
+
+          {/* Thumbnails: solo si hay más de una foto cargada */}
+          {images.length > 1 && (
+            <div className="flex items-center gap-2 p-3 bg-white/80 overflow-x-auto">
+              {images.map((url, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImageIndex(index)}
+                  className={`w-14 h-14 rounded-lg overflow-hidden shrink-0 border-2 transition-colors ${
+                    index === selectedImageIndex ? 'border-amber-500' : 'border-transparent opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={url} alt={`${product.name} foto ${index + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
           )}
         </div>
 

@@ -10,6 +10,7 @@ export interface Product {
   stock: number;
   minStockAlert?: number;
   image: string;
+  images?: string[];
   badge?: 'Oferta' | 'Nuevo' | 'Destacado' | 'Mayorista' | 'Más Vendido';
   code: string; // SKU or Barcode
   featured?: boolean;

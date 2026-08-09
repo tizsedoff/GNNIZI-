@@ -55,7 +55,8 @@ export const InventoryAdmin: React.FC = () => {
   const [formWholesalePrice, setFormWholesalePrice] = useState(0);
   const [formStock, setFormStock] = useState(10);
   const [formMinStock, setFormMinStock] = useState(5);
-  const [formImage, setFormImage] = useState('');
+  const [formImages, setFormImages] = useState<string[]>([]);
+  const [urlManual, setUrlManual] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formBadge, setFormBadge] = useState<Product['badge'] | undefined>(undefined);
 
@@ -91,7 +92,7 @@ export const InventoryAdmin: React.FC = () => {
     setFormWholesalePrice(7500);
     setFormStock(20);
     setFormMinStock(5);
-    setFormImage('https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80');
+    setFormImages([]);
     setFormDescription('Descripción detallada del nuevo producto importado...');
     setFormBadge('Nuevo');
     setIsModalOpen(true);
@@ -106,36 +107,42 @@ export const InventoryAdmin: React.FC = () => {
     setFormWholesalePrice(p.wholesalePrice || Math.round(p.price * 0.75));
     setFormStock(p.stock);
     setFormMinStock(p.minStockAlert || 5);
-    setFormImage(p.image);
+    setFormImages(p.images && p.images.length > 0 ? p.images : (p.image ? [p.image] : []));
     setFormDescription(p.description);
     setFormBadge(p.badge);
     setIsModalOpen(true);
   };
 
-  // Sube la foto elegida (archivos o galería) al bucket de Supabase y completa formImage con la URL pública
-  const handleFotoSeleccionada = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const archivo = e.target.files ? e.target.files[0] : null;
-    if (!archivo) return;
+  // Sube una o varias fotos elegidas (archivos o galería) al bucket de Supabase y las agrega a formImages
+  const handleFotosSeleccionadas = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archivos = e.target.files ? Array.from(e.target.files) : [];
+    if (archivos.length === 0) return;
 
     setSubiendoFoto(true);
     try {
-      const extension = archivo.name.includes('.')
-        ? archivo.name.split('.').pop()
-        : 'jpg';
-      const nombreLimpio = `${Date.now()}.${extension}`;
+      const urlsSubidas: string[] = [];
 
-      const { error: errorSubida } = await supabase.storage
-        .from('productos-fotos')
-        .upload(nombreLimpio, archivo);
+      for (const archivo of archivos) {
+        const extension = archivo.name.includes('.')
+          ? archivo.name.split('.').pop()
+          : 'jpg';
+        const nombreLimpio = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`;
 
-      if (errorSubida) throw errorSubida;
+        const { error: errorSubida } = await supabase.storage
+          .from('productos-fotos')
+          .upload(nombreLimpio, archivo);
 
-      const { data: urlData } = supabase.storage
-        .from('productos-fotos')
-        .getPublicUrl(nombreLimpio);
+        if (errorSubida) throw errorSubida;
 
-      setFormImage(urlData.publicUrl);
-      showToast('📷 Foto subida con éxito');
+        const { data: urlData } = supabase.storage
+          .from('productos-fotos')
+          .getPublicUrl(nombreLimpio);
+
+        urlsSubidas.push(urlData.publicUrl);
+      }
+
+      setFormImages(prev => [...prev, ...urlsSubidas]);
+      showToast(urlsSubidas.length > 1 ? `📷 ${urlsSubidas.length} fotos subidas con éxito` : '📷 Foto subida con éxito');
     } catch (err: any) {
       console.error(err);
       showToast(`No se pudo subir la foto: ${err?.message || 'error desconocido'}`);
@@ -143,6 +150,16 @@ export const InventoryAdmin: React.FC = () => {
       setSubiendoFoto(false);
       if (inputFotoRef.current) inputFotoRef.current.value = '';
     }
+  };
+
+  const quitarFoto = (index: number) => {
+    setFormImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const agregarUrlManual = () => {
+    if (!urlManual.trim()) return;
+    setFormImages(prev => [...prev, urlManual.trim()]);
+    setUrlManual('');
   };
 
   const handleSaveProduct = (e: React.FormEvent) => {
@@ -162,7 +179,8 @@ export const InventoryAdmin: React.FC = () => {
         wholesalePrice: Number(formWholesalePrice),
         stock: Number(formStock),
         minStockAlert: Number(formMinStock),
-        image: formImage || editingProduct.image,
+        image: formImages[0] || editingProduct.image,
+        images: formImages,
         description: formDescription,
         badge: formBadge
       });
@@ -175,7 +193,8 @@ export const InventoryAdmin: React.FC = () => {
         wholesalePrice: Number(formWholesalePrice),
         stock: Number(formStock),
         minStockAlert: Number(formMinStock),
-        image: formImage || 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80',
+        image: formImages[0] || 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80',
+        images: formImages,
         description: formDescription,
         badge: formBadge
       });
@@ -684,47 +703,77 @@ export const InventoryAdmin: React.FC = () => {
                 </div>
               </div>
 
-              {/* Foto del producto: subida desde archivos/galería + URL manual opcional */}
+              {/* Fotos del producto: subida múltiple desde archivos/galería + URL manual opcional */}
               <div>
-                <label className="block font-bold text-neutral-700 mb-1">Foto del Producto</label>
+                <label className="block font-bold text-neutral-700 mb-1">
+                  Fotos del Producto {formImages.length > 0 && `(${formImages.length})`}
+                </label>
 
-                <div className="flex items-center gap-3 mb-2">
-                  {formImage && (
-                    <img
-                      src={formImage}
-                      alt="Vista previa"
-                      className="w-16 h-16 rounded-xl object-cover border border-neutral-200 shrink-0"
-                    />
-                  )}
+                {formImages.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {formImages.map((url, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={url}
+                          alt={`Foto ${index + 1}`}
+                          className="w-16 h-16 rounded-xl object-cover border border-neutral-200"
+                        />
+                        {index === 0 && (
+                          <span className="absolute -top-1.5 -left-1.5 bg-amber-500 text-neutral-950 text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow">
+                            Portada
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => quitarFoto(index)}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-neutral-900 text-white flex items-center justify-center text-[10px] hover:bg-rose-600"
+                          title="Quitar foto"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
+                <input
+                  ref={inputFotoRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFotosSeleccionadas}
+                  className="hidden"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => inputFotoRef.current?.click()}
+                  disabled={subiendoFoto}
+                  className="w-full py-2.5 rounded-xl border border-neutral-300 font-bold text-neutral-700 hover:bg-neutral-100 flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  <Upload className="w-4 h-4" />
+                  {subiendoFoto ? 'Subiendo...' : 'Agregar fotos (galería o archivos, podés elegir varias)'}
+                </button>
+
+                <label className="block text-[10px] font-semibold text-neutral-400 mt-2 mb-1">
+                  o agregá una URL de imagen (Unsplash, CDN, etc.)
+                </label>
+                <div className="flex gap-2">
                   <input
-                    ref={inputFotoRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFotoSeleccionada}
-                    className="hidden"
+                    type="url"
+                    value={urlManual}
+                    onChange={(e) => setUrlManual(e.target.value)}
+                    placeholder="https://..."
+                    className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl"
                   />
-
                   <button
                     type="button"
-                    onClick={() => inputFotoRef.current?.click()}
-                    disabled={subiendoFoto}
-                    className="flex-1 py-2.5 rounded-xl border border-neutral-300 font-bold text-neutral-700 hover:bg-neutral-100 flex items-center justify-center gap-2 disabled:opacity-60"
+                    onClick={agregarUrlManual}
+                    className="px-3 py-2 rounded-xl border border-neutral-300 font-bold text-neutral-700 hover:bg-neutral-100"
                   >
-                    <Upload className="w-4 h-4" />
-                    {subiendoFoto ? 'Subiendo...' : 'Elegir foto (galería o archivos)'}
+                    Agregar
                   </button>
                 </div>
-
-                <label className="block text-[10px] font-semibold text-neutral-400 mb-1">
-                  o pegá una URL de imagen (Unsplash, CDN, etc.)
-                </label>
-                <input
-                  type="url"
-                  value={formImage}
-                  onChange={(e) => setFormImage(e.target.value)}
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl"
-                />
               </div>
 
               <div>

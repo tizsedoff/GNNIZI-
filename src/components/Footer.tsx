@@ -98,7 +98,7 @@ export const Footer: React.FC = () => {
             </p>
           </div>
 
-          <div className="w-full md:w-auto min-w-[320px]">
+          <div className="w-full md:w-auto md:min-w-[320px]">
             <form onSubmit={handleSubscribe} className="flex gap-2">
               <input
                 type="email"
