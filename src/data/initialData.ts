@@ -5,9 +5,9 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-1',
     code: 'GNZ-BAZ-01',
-    name: 'Botella Térmica De Acero Inoxidable 750ml Pastel',
+    name: '',
     category: 'Bazar',
-    description: 'Botella térmica de doble capa de acero inoxidable 304. Mantiene líquidos fríos por 24hs y calientes por 12hs. Acabado soft touch mate en colores pastel con pico rebatible antigoteo.',
+    description: ' .',
     price: 14500,
     wholesalePrice: 10800,
     stock: 45,

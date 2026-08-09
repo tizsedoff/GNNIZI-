@@ -160,7 +160,7 @@ export const HeroLanding: React.FC = () => {
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">
                       Destacado del Mes
                     </span>
-                    <h4 className="text-white font-bold text-sm">Botella Térmica Pastel 750ml</h4>
+                    <h4 className="text-white font-bold text-sm"></h4>
                     <p className="text-xs text-neutral-300">$14.500 <span className="text-[10px] text-neutral-400">(Mayorista $10.800)</span></p>
                   </div>
                   <button

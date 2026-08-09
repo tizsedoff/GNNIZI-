@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, CartItem, Order, BlogPost, ActiveView, Category, NewsletterSubscriber } from '../types';
-import { INITIAL_PRODUCTS, INITIAL_BLOG_POSTS } from '../data/initialData';
+import { INITIAL_BLOG_POSTS } from '../data/initialData';
+import { supabase } from '../supabaseClient';
 
 interface AppContextType {
   products: Product[];
@@ -62,12 +63,68 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// Convierte una fila de la tabla "productos" de Supabase (snake_case) al tipo Product de la app (camelCase)
+const mapRowToProduct = (row: any): Product => ({
+  id: row.id,
+  name: row.name,
+  category: row.category,
+  code: row.code,
+  price: Number(row.price),
+  wholesalePrice: row.wholesale_price != null ? Number(row.wholesale_price) : undefined,
+  stock: row.stock,
+  minStockAlert: row.min_stock_alert ?? undefined,
+  image: row.image,
+  description: row.description,
+  badge: row.badge ?? undefined,
+  specifications: row.specifications ?? undefined,
+});
+
+// Convierte un Product de la app al formato de fila (snake_case) para Supabase
+const mapProductToRow = (product: Omit<Product, 'id'> | Product) => ({
+  name: product.name,
+  category: product.category,
+  code: product.code,
+  price: product.price,
+  wholesale_price: product.wholesalePrice ?? null,
+  stock: product.stock,
+  min_stock_alert: product.minStockAlert ?? null,
+  image: product.image,
+  description: product.description,
+  badge: product.badge ?? null,
+  specifications: product.specifications ?? null,
+});
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Products State
-  const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('giannizi_products') || localStorage.getItem('ginazzi_products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
-  });
+  // Notifications (definido temprano porque products lo usa al cargar)
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
+  };
+
+  // Products State — ahora vive en Supabase, no en localStorage
+  const [products, setProducts] = useState<Product[]>([]);
+
+  const cargarProductosDesdeSupabase = async () => {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      showToast('No se pudieron cargar los productos.');
+      return;
+    }
+
+    setProducts((data || []).map(mapRowToProduct));
+  };
+
+  useEffect(() => {
+    cargarProductosDesdeSupabase();
+  }, []);
 
   // Cart State
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -78,28 +135,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Orders State
   const [orders, setOrders] = useState<Order[]>(() => {
     const saved = localStorage.getItem('giannizi_orders') || localStorage.getItem('ginazzi_orders');
-    return saved ? JSON.parse(saved) : [
-      {
-        id: 'GNZ-7821',
-        date: new Date(Date.now() - 86400000 * 2).toLocaleDateString('es-AR'),
-        customerName: 'Laura Fernández',
-        customerEmail: 'laura.f@email.com',
-        customerPhone: '+54 11 4988-2311',
-        customerDni: '34.821.099',
-        shippingAddress: 'Av. Corrientes 2450, CABA',
-        shippingMethod: 'Envío a Domicilio',
-        paymentMethod: 'Transferencia Bancaria (10% OFF)',
-        items: [
-          { product: INITIAL_PRODUCTS[0], quantity: 2 },
-          { product: INITIAL_PRODUCTS[3], quantity: 1 }
-        ],
-        subtotal: 40200,
-        discount: 4020,
-        shippingCost: 3500,
-        total: 39680,
-        status: 'En Preparación'
-      }
-    ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Subscribers State
@@ -157,13 +193,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [newsletterEmail] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [appliedDiscountPercent, setAppliedDiscountPercent] = useState<number>(0);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Sync to localStorage
-  useEffect(() => {
-    localStorage.setItem('giannizi_products', JSON.stringify(products));
-  }, [products]);
-
+  // Sync to localStorage (products ya NO se guarda acá, vive en Supabase)
   useEffect(() => {
     localStorage.setItem('giannizi_cart', JSON.stringify(cart));
   }, [cart]);
@@ -179,13 +210,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem('giannizi_wishlist', JSON.stringify(wishlist));
   }, [wishlist]);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3500);
-  };
 
   const toggleWishlist = (productId: string) => {
     setWishlist(prev => {
@@ -263,33 +287,72 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: false, message: 'Cupón inválido o expirado.', discountPercent: 0 };
   };
 
-  // Inventory Management
-  const addProduct = (newProdData: Omit<Product, 'id'>) => {
-    const newProduct: Product = {
-      ...newProdData,
-      id: `prod-${Date.now()}`
-    };
+  // Inventory Management — ahora contra Supabase
+  const addProduct = async (newProdData: Omit<Product, 'id'>) => {
+    const { data, error } = await supabase
+      .from('productos')
+      .insert([mapProductToRow(newProdData)])
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo crear el producto: ${error.message}`);
+      return;
+    }
+
+    const newProduct = mapRowToProduct(data);
     setProducts(prev => [newProduct, ...prev]);
     showToast(`✅ Nuevo producto creado: ${newProduct.name}`);
   };
 
-  const updateProduct = (updated: Product) => {
+  const updateProduct = async (updated: Product) => {
+    const { error } = await supabase
+      .from('productos')
+      .update(mapProductToRow(updated))
+      .eq('id', updated.id);
+
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo guardar el producto: ${error.message}`);
+      return;
+    }
+
     setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
-    showToast(`Petición guardada para: ${updated.name}`);
+    showToast(`Producto actualizado: ${updated.name}`);
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
+    const { error } = await supabase
+      .from('productos')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo eliminar el producto: ${error.message}`);
+      return;
+    }
+
     setProducts(prev => prev.filter(p => p.id !== id));
     showToast('Producto eliminado del inventario');
   };
 
-  const updateProductStock = (id: string, newStock: number) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id === id) {
-        return { ...p, stock: Math.max(0, newStock) };
-      }
-      return p;
-    }));
+  const updateProductStock = async (id: string, newStock: number) => {
+    const stockFinal = Math.max(0, newStock);
+
+    const { error } = await supabase
+      .from('productos')
+      .update({ stock: stockFinal })
+      .eq('id', id);
+
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo actualizar el stock: ${error.message}`);
+      return;
+    }
+
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, stock: stockFinal } : p));
     showToast('Stock actualizado exitosamente');
   };
 
@@ -302,11 +365,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'Pendiente'
     };
 
-    // Deduct stock
+    // Descuenta stock local (optimista) y lo sincroniza con Supabase en segundo plano
     setProducts(prev => prev.map(p => {
       const cartItem = orderData.items.find(ci => ci.product.id === p.id);
       if (cartItem) {
-        return { ...p, stock: Math.max(0, p.stock - cartItem.quantity) };
+        const nuevoStock = Math.max(0, p.stock - cartItem.quantity);
+
+        supabase
+          .from('productos')
+          .update({ stock: nuevoStock })
+          .eq('id', p.id)
+          .then(({ error }) => {
+            if (error) console.error('Error al descontar stock en Supabase:', error);
+          });
+
+        return { ...p, stock: nuevoStock };
       }
       return p;
     }));
@@ -344,11 +417,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, coupon: 'GIANNIZI10', message: '¡Suscripción exitosa! Usá el cupón GIANNIZI10 para obtener un 10% OFF.' };
   };
 
-  const resetToInitialData = () => {
-    setProducts(INITIAL_PRODUCTS);
-    localStorage.removeItem('giannizi_products');
-    localStorage.removeItem('ginazzi_products');
-    showToast('Inventario restablecido a valores por defecto');
+  // Ahora "resetear" significa recargar desde Supabase (fuente única de verdad)
+  const resetToInitialData = async () => {
+    await cargarProductosDesdeSupabase();
+    showToast('Inventario recargado desde la base de datos');
   };
 
   return (
