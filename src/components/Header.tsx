@@ -5,8 +5,6 @@ import {
   Menu, 
   X, 
   Heart, 
-  UserCheck, 
-  PackageCheck, 
   Sparkles,
   PhoneCall,
   ShieldCheck,
@@ -27,25 +25,14 @@ export const Header: React.FC = () => {
     setSearchQuery, 
     cartCount, 
     setIsCartOpen,
-    isAdmin,
-    openAdminPasswordModal,
-    logoutAdmin,
-    wishlist,
-    products
+    wishlist
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const categories: (Category | 'Todas')[] = ['Todas', 'Bazar', 'Papelería', 'Hogar', 'Regalería', 'Oficina', 'Novedades'];
 
-  const lowStockCount = products.filter(p => p.stock <= (p.minStockAlert || 5)).length;
-
   const handleNav = (view: ActiveView, category?: Category | 'Todas') => {
-    if (view === 'inventory-admin' && !isAdmin) {
-      openAdminPasswordModal();
-      setMobileMenuOpen(false);
-      return;
-    }
     setActiveView(view);
     if (category !== undefined) {
       setSelectedCategory(category);
@@ -75,36 +62,14 @@ export const Header: React.FC = () => {
 
           <div className="flex items-center gap-3 text-xs text-neutral-300">
             <a 
-              href="https://wa.me/549113755301413?text=Hola%20GIANNIZI%20Imports,%20quisiera%20hacer%20una%20consulta" 
+              href="https://wa.me/549113755266056?text=Hola%20GIANNIZI%20Imports,%20quisiera%20hacer%20una%20consulta" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center gap-1 hover:text-white transition-colors"
             >
               <PhoneCall className="w-3 h-3 text-emerald-400" />
-              <span>Atención Directa: +54 9 11 3755 301413</span>
+              <span>Atención Directa: +54 9 11 3755 266056</span>
             </a>
-
-            <button
-              onClick={() => {
-                if (isAdmin) {
-                  logoutAdmin();
-                } else {
-                  openAdminPasswordModal();
-                }
-              }}
-              className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1 ${
-                isAdmin 
-                  ? 'bg-amber-500 text-neutral-950 shadow-sm' 
-                  : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
-              }`}
-              title="Panel de Control de Inventario y Ventas"
-            >
-              <PackageCheck className="w-3 h-3" />
-              {isAdmin ? 'Salir de Admin' : 'Acceso Admin'}
-              {lowStockCount > 0 && !isAdmin && (
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-              )}
-            </button>
           </div>
         </div>
       </div>
@@ -184,19 +149,6 @@ export const Header: React.FC = () => {
                   {wishlist.length}
                 </span>
               )}
-            </button>
-
-            {/* Admin Dashboard shortcut */}
-            <button
-              onClick={() => handleNav('inventory-admin')}
-              className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                activeView === 'inventory-admin'
-                  ? 'bg-neutral-900 text-amber-400 ring-2 ring-amber-400'
-                  : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
-              }`}
-            >
-              <PackageCheck className="w-4 h-4 text-amber-600" />
-              <span className="hidden sm:inline">Inventario & Stock</span>
             </button>
 
             {/* Cart Button */}
@@ -400,12 +352,6 @@ export const Header: React.FC = () => {
               className="w-full text-left px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg"
             >
               📞 Contacto & Ubicación
-            </button>
-            <button
-              onClick={() => handleNav('inventory-admin')}
-              className="w-full text-left px-3 py-2 text-sm font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg border border-amber-200 mt-2"
-            >
-              📊 Control de Inventario & Ventas (Admin)
             </button>
           </div>
         </div>

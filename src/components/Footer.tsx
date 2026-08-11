@@ -19,7 +19,7 @@ import { useApp } from '../context/AppContext';
 import logoGiannizi from '../../assets/logo.jpg';
 
 export const Footer: React.FC = () => {
-  const { setActiveView, setSelectedCategory, subscribeNewsletter } = useApp();
+  const { setActiveView, setSelectedCategory, subscribeNewsletter, openAdminPasswordModal } = useApp();
   const [emailInput, setEmailInput] = useState('');
   const [subscribeResult, setSubscribeResult] = useState<{ success?: boolean; message?: string; coupon?: string } | null>(null);
 
@@ -173,7 +173,7 @@ export const Footer: React.FC = () => {
                   <Facebook className="w-4 h-4" />
                 </a>
                 <a 
-                  href="https://wa.me/5493755301413" 
+                  href="https://wa.me/5493755266056" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="w-9 h-9 rounded-lg bg-emerald-950 border border-emerald-800 flex items-center justify-center text-emerald-400 hover:bg-emerald-900 transition-colors"
@@ -287,8 +287,16 @@ export const Footer: React.FC = () => {
 
       {/* Bottom Bar & Mandatory Developer Credit */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
-        <div>
-          © {new Date().getFullYear()} GIANNIZI Imports S.A. Todos los derechos reservados.
+        <div className="flex items-center gap-3 flex-wrap">
+          <span>© {new Date().getFullYear()} GIANNIZI Imports S.A. Todos los derechos reservados.</span>
+          
+          {/* Botón visible de Acceso Admin */}
+          <button 
+            onClick={openAdminPasswordModal} 
+            className="text-[11px] bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded hover:bg-amber-500/20 transition-colors font-medium cursor-pointer"
+          >
+            Admin
+          </button>
         </div>
 
         {/* Payment options accepted icons indicator */}

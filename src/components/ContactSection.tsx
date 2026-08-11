@@ -92,7 +92,7 @@ export const ContactSection: React.FC = () => {
 
             {/* Direct WhatsApp Launcher Button */}
             <a
-              href="https://wa.me/5493755301413?text=Hola%20GIANNIZI%20Imports!%20Quisiera%20hacer%20una%20consulta"
+              href="https://wa.me/5493755266056?text=Hola%20GIANNIZI%20Imports!%20Quisiera%20hacer%20una%20consulta"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors text-xs shadow-md"
@@ -155,7 +155,7 @@ export const ContactSection: React.FC = () => {
                     <label className="block text-neutral-700 font-semibold mb-1">Teléfono</label>
                     <input
                       type="tel"
-                      placeholder="+54 11 3755 301413" 
+                      placeholder="+54 11 3755 266056" 
                      
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
