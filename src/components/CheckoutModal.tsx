@@ -234,7 +234,7 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                     <Building2 className="w-4 h-4 text-amber-600" />
                     <span className="font-bold text-neutral-900">Retiro en Depósito</span>
                   </div>
-                  <span className="text-[11px] text-emerald-600 font-bold">¡GRATIS! (CABA)</span>
+                  <span className="text-[11px] text-emerald-600 font-bold">¡GRATIS! (Av Rivadavia 650 El Soberbio, Misiones)</span>
                 </label>
 
                 <label className={`p-3 rounded-2xl border cursor-pointer flex flex-col justify-between space-y-2 transition-all ${
