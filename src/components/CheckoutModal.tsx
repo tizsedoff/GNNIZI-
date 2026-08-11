@@ -278,7 +278,7 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                 <span className="w-5 h-5 rounded-full bg-neutral-900 text-amber-400 text-xs font-black flex items-center justify-center">3</span>
                 Medio de Pago Seleccionado
               </h3>
-
+            </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 
                 {/* Transferencia */}
