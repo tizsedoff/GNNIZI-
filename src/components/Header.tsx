@@ -62,13 +62,13 @@ export const Header: React.FC = () => {
 
           <div className="flex items-center gap-3 text-xs text-neutral-300">
             <a 
-              href="https://wa.me/549113755266056?text=Hola%20GIANNIZI%20Imports,%20quisiera%20hacer%20una%20consulta" 
+              href="https://wa.me/5493755266056?text=Hola%20GIANNIZI%20Imports,%20quisiera%20hacer%20una%20consulta" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center gap-1 hover:text-white transition-colors"
             >
               <PhoneCall className="w-3 h-3 text-emerald-400" />
-              <span>Atención Directa: +54 9 11 3755 266056</span>
+              <span>Atención Directa: +54 9 3755 26-6056</span>
             </a>
           </div>
         </div>
