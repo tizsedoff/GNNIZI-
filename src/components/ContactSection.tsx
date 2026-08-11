@@ -55,7 +55,7 @@ export const ContactSection: React.FC = () => {
                 </div>
                 <div>
                   <strong className="block text-neutral-900 text-sm font-bold">Depósito Central & Retiro:</strong>
-                  <span>Av. Jujuy 1420, CABA, Argentina</span>
+                  <span>Av. Rivadavia 650, El Soberbio, Misiones, Argentina</span>
                 </div>
               </div>
 

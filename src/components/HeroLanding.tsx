@@ -123,7 +123,7 @@ export const HeroLanding: React.FC = () => {
                   className="w-full sm:w-auto bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-700 font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm sm:text-base"
                 >
                   <Tag className="w-4 h-4 text-amber-400" />
-                  <span>10% OFF en Transferencia</span>
+                  <span>5% OFF en Transferencia</span>
                 </button>
               </div>
 

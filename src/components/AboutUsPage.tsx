@@ -36,7 +36,7 @@ export const AboutUsPage: React.FC = () => {
             En <strong>GIANNIZI Imports</strong> nacimos con una misión clara: eliminar intermediarios innecesarios para acercar artículos de bazar, papelería bullet journal, regalos e iluminación con excelente relación costo-beneficio.
           </p>
           <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
-            Contamos con un depósito central de distribución en CABA desde el cual despachamos diariamente cientos de pedidos minoristas y pallets enteros para comercios de todo el país.
+            Contamos con un depósito central de distribución en El Soberbio, Misiones desde el cual despachamos diariamente cientos de pedidos minoristas y pallets enteros para comercios de todo el país.
           </p>
 
           <div className="pt-4 grid grid-cols-2 gap-4 text-xs">
@@ -59,7 +59,7 @@ export const AboutUsPage: React.FC = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent"></div>
           <div className="absolute bottom-6 left-6 right-6 text-white">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block">Depósito Central CABA</span>
+            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block">Depósito Central El Soberbio</span>
             <p className="text-sm font-semibold">Infraestructura logística preparada para envíos prioritarios.</p>
           </div>
         </div>

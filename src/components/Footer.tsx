@@ -60,7 +60,7 @@ export const Footer: React.FC = () => {
             </div>
             <div>
               <h4 className="text-white font-semibold text-sm">Medios de Pago Flexibles</h4>
-              <p className="text-xs text-neutral-400 mt-1">10% OFF con Transferencia, Cuotas en tarjeta y Mercado Pago.</p>
+              <p className="text-xs text-neutral-400 mt-1">5% OFF con Transferencia, Cuotas en tarjeta y Mercado Pago.</p>
             </div>
           </div>
 
@@ -92,7 +92,7 @@ export const Footer: React.FC = () => {
               Suscripción a Novedades & Promociones
             </span>
             <h3 className="text-xl sm:text-2xl font-bold text-white">
-              Recibí ofertas exclusivas y un 10% OFF en tu primera compra
+              Recibí ofertas exclusivas y novedades de nuestros productos
             </h3>
             <p className="text-xs sm:text-sm text-neutral-400 mt-1">
               Suscribite a nuestro newsletter para enterarte antes que nadie del ingreso de nuevos contenedores de Bazar y Papelería.
@@ -265,7 +265,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2.5 text-xs text-neutral-400">
               <li className="flex items-start space-x-2">
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>Depósito Central: Av. Jujuy 1420, CABA, Argentina</span>
+                <span>Depósito Central: Av. Rivadavia 650, El Soberbio, Misiones, Argentina</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-amber-400 shrink-0" />

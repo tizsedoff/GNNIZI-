@@ -6,7 +6,7 @@ export const PaymentMethodsPage: React.FC = () => {
   const { setActiveView } = useApp();
   const [calcAmount, setCalcAmount] = useState(25000);
 
-  const transferSavings = Math.round(calcAmount * 0.10);
+  const transferSavings = Math.round(calcAmount * 0.05);
   const finalTransferPrice = calcAmount - transferSavings;
 
   return (
@@ -48,7 +48,7 @@ export const PaymentMethodsPage: React.FC = () => {
 
           <div className="p-4 rounded-2xl bg-emerald-950 text-emerald-300 border border-emerald-800 space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">
-              10% OFF Con Transferencia
+              5% OFF Con Transferencia
             </span>
             <div className="text-2xl font-black font-mono">${finalTransferPrice.toLocaleString('es-AR')}</div>
             <p className="text-xs text-emerald-400 font-medium">Ahorrás en el acto: ${transferSavings.toLocaleString('es-AR')}</p>
@@ -76,11 +76,11 @@ export const PaymentMethodsPage: React.FC = () => {
           </div>
           <div>
             <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase border border-emerald-200">
-              Recomendado • 10% OFF
+              Recomendado • 5% OFF
             </span>
             <h3 className="text-lg font-bold text-neutral-900 mt-2">Transferencia Bancaria</h3>
             <p className="text-xs text-neutral-600 mt-1 leading-relaxed">
-              Recibís acreditación directa y un 10% de descuento automático en el total de tus productos. Ideal para compras mayoristas.
+              Recibís acreditación directa y un 5% de descuento automático en el total de tus productos. Ideal para compras mayoristas.
             </p>
           </div>
           <ul className="text-xs text-neutral-600 space-y-1.5 pt-2 border-t border-neutral-100 font-mono">

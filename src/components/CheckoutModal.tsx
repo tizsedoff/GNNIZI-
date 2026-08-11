@@ -37,13 +37,13 @@ export const CheckoutModal: React.FC = () => {
   const [customerDni, setCustomerDni] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
   const [shippingMethod, setShippingMethod] = useState<'Retiro en Local' | 'Envío a Domicilio' | 'Expreso Mayorista'>('Envío a Domicilio');
-  const [paymentMethod, setPaymentMethod] = useState<'Transferencia Bancaria (10% OFF)' | 'Mercado Pago' | 'Tarjeta en Cuotas' | 'Efectivo contra entrega'>('Transferencia Bancaria (10% OFF)');
+  const [paymentMethod, setPaymentMethod] = useState<'Transferencia Bancaria (5% OFF)' | 'Mercado Pago' | 'Tarjeta en Cuotas' | 'Efectivo contra entrega'>('Transferencia Bancaria (5% OFF)');
 
   if (!isCheckoutOpen) return null;
 
   // Calculate costs
   const discountFromCoupon = Math.round((cartTotal * appliedDiscountPercent) / 100);
-  const transferDiscount = paymentMethod === 'Transferencia Bancaria (10% OFF)' ? Math.round((cartTotal - discountFromCoupon) * 0.1) : 0;
+  const transferDiscount = paymentMethod === 'Transferencia Bancaria (5% OFF)' ? Math.round((cartTotal - discountFromCoupon) * 0.05) : 0;
   
   const totalDiscount = discountFromCoupon + transferDiscount;
   
@@ -283,19 +283,19 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                 
                 {/* Transferencia */}
                 <label className={`p-3.5 rounded-2xl border cursor-pointer flex items-start space-x-3 transition-all ${
-                  paymentMethod === 'Transferencia Bancaria (10% OFF)' ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-400' : 'border-neutral-200 bg-neutral-50'
+                  paymentMethod === 'Transferencia Bancaria (5% OFF)' ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-400' : 'border-neutral-200 bg-neutral-50'
                 }`}>
                   <input
                     type="radio"
                     name="payment"
-                    checked={paymentMethod === 'Transferencia Bancaria (10% OFF)'}
-                    onChange={() => setPaymentMethod('Transferencia Bancaria (10% OFF)')}
+                    checked={paymentMethod === 'Transferencia Bancaria (5% OFF)'}
+                    onChange={() => setPaymentMethod('Transferencia Bancaria (5% OFF)')}
                     className="accent-amber-500 mt-1"
                   />
                   <div>
                     <span className="font-bold text-neutral-900 block">Transferencia Bancaria</span>
                     <span className="text-[11px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded inline-block mt-0.5">
-                      🔥 10% OFF Automático
+                      🔥 5% OFF Automático
                     </span>
                   </div>
                 </label>
@@ -354,7 +354,7 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
               </div>
 
               {/* Transfer Details Card */}
-              {paymentMethod === 'Transferencia Bancaria (10% OFF)' && (
+              {paymentMethod === 'Transferencia Bancaria (5% OFF)' && (
                 <div className="p-4 rounded-2xl bg-neutral-900 text-white space-y-2 text-xs">
                   <div className="flex items-center justify-between text-amber-400 font-bold">
                     <span>Datos bancarios para transferencia:</span>

@@ -34,7 +34,7 @@ interface AppContextType {
   toggleWishlist: (productId: string) => void;
   newsletterEmail: string;
   subscribers: NewsletterSubscriber[];
-  subscribeNewsletter: (email: string) => { success: boolean; coupon?: string; message: string };
+  subscribeNewsletter: (email: string) => { success: boolean; message: string };
   
   // Cart actions
   addToCart: (product: Product, quantity?: number) => void;
@@ -279,14 +279,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const applyCoupon = (code: string) => {
-    const cleanCode = code.trim().toUpperCase();
-    if (cleanCode === 'GIANNIZI10' || cleanCode === 'GINAZZI10' || cleanCode === 'APS10' || cleanCode === 'WELCOME10') {
-      setAppliedCoupon(cleanCode);
-      setAppliedDiscountPercent(10);
-      showToast('🎉 ¡Cupón aplicado! 10% de descuento concedido.');
-      return { success: true, message: '¡Cupón de 10% aplicado con éxito!', discountPercent: 10 };
-    }
-    return { success: false, message: 'Cupón inválido o expirado.', discountPercent: 0 };
+    // Los cupones de descuento fueron discontinuados.
+    return { success: false, message: 'Por el momento no contamos con cupones de descuento.', discountPercent: 0 };
   };
 
   // Inventory Management — ahora contra Supabase
@@ -404,19 +398,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     const exists = subscribers.some(s => s.email === cleanEmail);
     if (exists) {
-      return { success: true, coupon: 'GIANNIZI10', message: '¡Ya estabas suscripto! Tu código de descuento es GIANNIZI10.' };
+      return { success: true, message: '¡Ya estabas suscripto! Gracias por seguir con nosotros.' };
     }
 
     const newSub: NewsletterSubscriber = {
       id: `sub-${Date.now()}`,
       email: cleanEmail,
       date: new Date().toLocaleDateString('es-AR'),
-      couponCode: 'GIANNIZI10'
+      couponCode: ''
     };
 
     setSubscribers(prev => [newSub, ...prev]);
     showToast('🎉 ¡Gracias por suscribirte a GIANNIZI Imports!');
-    return { success: true, coupon: 'GIANNIZI10', message: '¡Suscripción exitosa! Usá el cupón GIANNIZI10 para obtener un 10% OFF.' };
+    return { success: true, message: '¡Suscripción exitosa! Te vamos a mantener al tanto de nuestras novedades.' };
   };
 
   // Ahora "resetear" significa recargar desde Supabase (fuente única de verdad)

@@ -31,7 +31,7 @@ export interface Order {
   customerDni: string;
   shippingAddress: string;
   shippingMethod: 'Retiro en Local' | 'Envío a Domicilio' | 'Expreso Mayorista';
-  paymentMethod: 'Transferencia Bancaria (10% OFF)' | 'Mercado Pago' | 'Tarjeta en Cuotas' | 'Efectivo contra entrega';
+  paymentMethod: 'Transferencia Bancaria (5% OFF)' | 'Mercado Pago' | 'Tarjeta en Cuotas' | 'Efectivo contra entrega';
   items: CartItem[];
   subtotal: number;
   discount: number;
