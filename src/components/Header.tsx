@@ -125,18 +125,18 @@ export const Header: React.FC = () => {
           {/* Brand Logo */}
           <div 
             onClick={() => handleNav('landing')}
-            className="cursor-pointer flex items-center gap-2 group shrink-0"
+            className="cursor-pointer flex items-center gap-2 group min-w-0"
           >
             <img
               src={logoGiannizi}
               alt="GIANNIZI Imports"
-              className="w-11 h-11 object-contain group-hover:scale-105 transition-transform"
+              className="w-11 h-11 object-contain group-hover:scale-105 transition-transform shrink-0"
             />
-            <div>
-              <span className="text-xl sm:text-2xl font-black tracking-tight text-neutral-900 block leading-none font-display">
+            <div className="min-w-0">
+              <span className="text-xl sm:text-2xl font-black tracking-tight text-neutral-900 block leading-none font-display truncate">
                 GIANNIZI <span className="text-amber-600 font-light text-lg sm:text-xl">IMPORTS</span>
               </span>
-              <span className="text-[10px] text-neutral-500 tracking-widest uppercase font-semibold block mt-0.5">
+              <span className="text-[10px] text-neutral-500 tracking-widest uppercase font-semibold mt-0.5 truncate hidden sm:block">
                 Bazar, Papelería & Importaciones
               </span>
             </div>
