@@ -353,32 +353,7 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
 
               </div>
 
-              {/* Transfer Details Card */}
-              {paymentMethod === 'Transferencia Bancaria (5% OFF)' && (
-                <div className="p-4 rounded-2xl bg-neutral-900 text-white space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-amber-400 font-bold">
-                    <span>Datos bancarios para transferencia:</span>
-                    <span>Ahorro: -${transferDiscount.toLocaleString('es-AR')}</span>
-                  </div>
-                  <div className="font-mono space-y-1 text-neutral-300">
-                    <p>Banco: <strong className="text-white">Banco Galicia</strong></p>
-                    <p>Titular: <strong className="text-white">GIANNIZI IMPORTS S.A.</strong></p>
-                    <p className="flex items-center justify-between">
-                      <span>CBU: <strong className="text-white">0070123420000012345678</strong></span>
-                      <button 
-                        type="button" 
-                        onClick={() => copyToClipboard('0070123420000012345678')}
-                        className="text-amber-400 hover:underline flex items-center gap-1 font-bold"
-                      >
-                        {copiedCbu ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                        {copiedCbu ? '¡Copiado!' : 'Copiar CBU'}
-                      </button>
-                    </p>
-                    <p>Alias: <strong className="text-amber-400">GIANNIZI.IMPORTS.GALICIA</strong></p>
-                  </div>
-                </div>
-              )}
-            </div>
+             
 
             {/* Total Breakdown Summary */}
             <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-2 text-xs">
