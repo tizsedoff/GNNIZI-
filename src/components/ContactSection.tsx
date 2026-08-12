@@ -65,7 +65,7 @@ export const ContactSection: React.FC = () => {
                 </div>
                 <div>
                   <strong className="block text-neutral-900 text-sm font-bold">WhatsApp Directo:</strong>
-                  <span>+54 9 3755 30-1413</span>
+                  <span>+54 9 3755 266056</span>
                 </div>
               </div>
 
