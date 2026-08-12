@@ -69,7 +69,7 @@ export const CheckoutModal: React.FC = () => {
       customerEmail,
       customerPhone,
       customerDni,
-      shippingAddress: shippingMethod === 'Retiro en Local' ? 'Retiro por Depósito Central (Av. Jujuy 1420, CABA)' : shippingAddress,
+      shippingAddress: shippingMethod === 'Retiro en Local' ? 'Retiro por Depósito Central (Av. Rivadavia 650, El Soberbio, Misiones  )' : shippingAddress,
       shippingMethod,
       paymentMethod,
       items: cart,

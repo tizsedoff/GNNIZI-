@@ -143,7 +143,7 @@ export const PaymentMethodsPage: React.FC = () => {
             </span>
             <h3 className="text-lg font-bold text-neutral-900 mt-2">Efectivo en Local</h3>
             <p className="text-xs text-neutral-600 mt-1 leading-relaxed">
-              Aboná directamente al momento de retirar tu pedido en nuestro depósito central en CABA sin costos de envío adicionales.
+              Aboná directamente al momento de retirar tu pedido en nuestro depósito central en AV Rivadavia 650 El Soberbio, Misiones sin costos de envío adicionales.
             </p>
           </div>
           <ul className="text-xs text-neutral-600 space-y-1.5 pt-2 border-t border-neutral-100 font-mono">
