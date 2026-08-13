@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   Package, 
   Plus, 
@@ -35,10 +35,12 @@ export const InventoryAdmin: React.FC = () => {
     updateOrderStatus,
     resetToInitialData,
     showToast,
-    logoutAdmin
+    logoutAdmin,
+    siteSettings,
+    updateSiteSettings
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'subscribers'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'subscribers' | 'settings'>('inventory');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'Todas'>('Todas');
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
@@ -65,6 +67,23 @@ export const InventoryAdmin: React.FC = () => {
   const inputFotoRef = useRef<HTMLInputElement>(null);
 
   const categories: Category[] = ['Bazar', 'Papelería', 'Hogar', 'Regalería', 'Oficina', 'Novedades'];
+
+  // Configuración del sitio (redes sociales)
+  const [formInstagram, setFormInstagram] = useState('');
+  const [formFacebook, setFormFacebook] = useState('');
+  const [guardandoSettings, setGuardandoSettings] = useState(false);
+
+  useEffect(() => {
+    setFormInstagram(siteSettings.instagramUrl);
+    setFormFacebook(siteSettings.facebookUrl);
+  }, [siteSettings]);
+
+  const handleGuardarSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGuardandoSettings(true);
+    await updateSiteSettings({ instagramUrl: formInstagram.trim(), facebookUrl: formFacebook.trim() });
+    setGuardandoSettings(false);
+  };
 
   // Metrics
   const totalProducts = products.length;
@@ -360,6 +379,18 @@ export const InventoryAdmin: React.FC = () => {
           <Users className="w-4 h-4" />
           <span>Newsletter ({subscribers.length})</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+            activeTab === 'settings' 
+              ? 'bg-neutral-900 text-amber-400 shadow-xs' 
+              : 'text-neutral-600 hover:bg-neutral-100'
+          }`}
+        >
+          <Lock className="w-4 h-4" />
+          <span>Configuración del Sitio</span>
+        </button>
       </div>
 
       {/* TAB 1: INVENTORY CONTROL TABLE */}
@@ -598,13 +629,54 @@ export const InventoryAdmin: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-4 text-neutral-500">
                   <span>Suscrito: {sub.date}</span>
-                  <span className="bg-amber-100 text-amber-800 font-mono px-2 py-0.5 rounded font-bold">
-                    Cupón: {sub.couponCode}
-                  </span>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* TAB 4: SITE SETTINGS (Redes Sociales) */}
+      {activeTab === 'settings' && (
+        <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 space-y-6 shadow-xs max-w-xl">
+          <div className="border-b border-neutral-100 pb-3">
+            <h3 className="font-bold text-sm text-neutral-900">Redes Sociales</h3>
+            <p className="text-xs text-neutral-500 mt-1">
+              Estos links se usan en los íconos del pie de página. Dejalo vacío si todavía no tenés esa red social — el ícono no se muestra si el campo está vacío.
+            </p>
+          </div>
+
+          <form onSubmit={handleGuardarSettings} className="space-y-4 text-xs">
+            <div>
+              <label className="block font-bold text-neutral-700 mb-1">Link de Instagram</label>
+              <input
+                type="url"
+                value={formInstagram}
+                onChange={(e) => setFormInstagram(e.target.value)}
+                placeholder="https://instagram.com/giannizi.imports"
+                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-neutral-700 mb-1">Link de Facebook</label>
+              <input
+                type="url"
+                value={formFacebook}
+                onChange={(e) => setFormFacebook(e.target.value)}
+                placeholder="https://facebook.com/giannizi.imports"
+                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={guardandoSettings}
+              className="w-full py-3 bg-neutral-900 hover:bg-amber-500 hover:text-neutral-950 text-amber-400 font-bold rounded-xl shadow-md transition-all disabled:opacity-60"
+            >
+              {guardandoSettings ? 'Guardando...' : 'Guardar Configuración'}
+            </button>
+          </form>
         </div>
       )}
 

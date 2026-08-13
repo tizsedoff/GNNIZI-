@@ -19,7 +19,7 @@ import { useApp } from '../context/AppContext';
 import logoGiannizi from '../../assets/logo.jpg';
 
 export const Footer: React.FC = () => {
-  const { setActiveView, setSelectedCategory, subscribeNewsletter, openAdminPasswordModal } = useApp();
+  const { setActiveView, setSelectedCategory, subscribeNewsletter, openAdminPasswordModal, siteSettings } = useApp();
   const [emailInput, setEmailInput] = useState('');
   const [subscribeResult, setSubscribeResult] = useState<{ success?: boolean; message?: string; coupon?: string } | null>(null);
 
@@ -154,24 +154,28 @@ export const Footer: React.FC = () => {
                 Síguenos en nuestras Redes Sociales:
               </span>
               <div className="flex items-center space-x-3">
-                <a 
-                  href="https://instagram.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-amber-400 hover:border-amber-500 transition-colors"
-                  aria-label="Instagram de GIANNIZI Imports"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a 
-                  href="https://facebook.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-amber-400 hover:border-amber-500 transition-colors"
-                  aria-label="Facebook de GIANNIZI Imports"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
+                {siteSettings.instagramUrl && (
+                  <a 
+                    href={siteSettings.instagramUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-amber-400 hover:border-amber-500 transition-colors"
+                    aria-label="Instagram de GIANNIZI Imports"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                )}
+                {siteSettings.facebookUrl && (
+                  <a 
+                    href={siteSettings.facebookUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-amber-400 hover:border-amber-500 transition-colors"
+                    aria-label="Facebook de GIANNIZI Imports"
+                  >
+                    <Facebook className="w-4 h-4" />
+                  </a>
+                )}
                 <a 
                   href="https://wa.me/5493755266056" 
                   target="_blank" 
@@ -269,7 +273,7 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Ventas: +54 9 3755 266056</span>
+                <span>Ventas: +54 9 3755 30-1413</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-amber-400 shrink-0" />

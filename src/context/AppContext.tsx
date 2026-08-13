@@ -59,6 +59,10 @@ interface AppContextType {
   // Notifications
   toastMessage: string | null;
   showToast: (msg: string) => void;
+
+  // Site settings (redes sociales, etc.)
+  siteSettings: { instagramUrl: string; facebookUrl: string };
+  updateSiteSettings: (settings: { instagramUrl: string; facebookUrl: string }) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -127,6 +131,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     cargarProductosDesdeSupabase();
   }, []);
+
+  // Site Settings (redes sociales, etc.) — vive en Supabase, tabla site_settings
+  const [siteSettings, setSiteSettings] = useState<{ instagramUrl: string; facebookUrl: string }>({
+    instagramUrl: '',
+    facebookUrl: '',
+  });
+
+  const cargarSiteSettings = async () => {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('*')
+      .eq('id', 1)
+      .single();
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (data) {
+      setSiteSettings({
+        instagramUrl: data.instagram_url || '',
+        facebookUrl: data.facebook_url || '',
+      });
+    }
+  };
+
+  useEffect(() => {
+    cargarSiteSettings();
+  }, []);
+
+  const updateSiteSettings = async (settings: { instagramUrl: string; facebookUrl: string }) => {
+    const { error } = await supabase
+      .from('site_settings')
+      .update({
+        instagram_url: settings.instagramUrl,
+        facebook_url: settings.facebookUrl,
+      })
+      .eq('id', 1);
+
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo guardar la configuración: ${error.message}`);
+      return;
+    }
+
+    setSiteSettings(settings);
+    showToast('✅ Configuración de redes sociales actualizada');
+  };
 
   // Cart State
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -470,7 +523,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateOrderStatus,
         resetToInitialData,
         toastMessage,
-        showToast
+        showToast,
+        siteSettings,
+        updateSiteSettings
       }}
     >
       {children}
