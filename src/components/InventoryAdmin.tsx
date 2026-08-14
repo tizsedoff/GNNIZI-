@@ -17,7 +17,8 @@ import {
   DollarSign,
   PackageCheck,
   Lock,
-  Upload
+  Upload,
+  Tag
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Product, Category, Order } from '../types';
@@ -37,10 +38,14 @@ export const InventoryAdmin: React.FC = () => {
     showToast,
     logoutAdmin,
     siteSettings,
-    updateSiteSettings
+    updateSiteSettings,
+    cupones,
+    addCupon,
+    toggleCuponActivo,
+    deleteCupon
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'subscribers' | 'settings'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'subscribers' | 'settings' | 'coupons'>('inventory');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'Todas'>('Todas');
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
@@ -101,6 +106,30 @@ export const InventoryAdmin: React.FC = () => {
       paymentMethodsEnabled: formMediosPago,
     });
     setGuardandoSettings(false);
+  };
+
+  // Cupones
+  const [formCuponCodigo, setFormCuponCodigo] = useState('');
+  const [formCuponDescuento, setFormCuponDescuento] = useState(10);
+  const [formCuponDescripcion, setFormCuponDescripcion] = useState('');
+  const [creandoCupon, setCreandoCupon] = useState(false);
+
+  const handleCrearCupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formCuponCodigo.trim()) {
+      showToast('Ponele un código al cupón.');
+      return;
+    }
+    setCreandoCupon(true);
+    await addCupon({
+      code: formCuponCodigo,
+      discountPercent: Number(formCuponDescuento),
+      description: formCuponDescripcion,
+    });
+    setFormCuponCodigo('');
+    setFormCuponDescuento(10);
+    setFormCuponDescripcion('');
+    setCreandoCupon(false);
   };
 
   // Metrics
@@ -408,6 +437,18 @@ export const InventoryAdmin: React.FC = () => {
         >
           <Lock className="w-4 h-4" />
           <span>Configuración del Sitio</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('coupons')}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+            activeTab === 'coupons' 
+              ? 'bg-neutral-900 text-amber-400 shadow-xs' 
+              : 'text-neutral-600 hover:bg-neutral-100'
+          }`}
+        >
+          <Tag className="w-4 h-4" />
+          <span>Cupones ({cupones.length})</span>
         </button>
       </div>
 
@@ -751,6 +792,96 @@ export const InventoryAdmin: React.FC = () => {
               {guardandoSettings ? 'Guardando...' : 'Guardar Configuración'}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* TAB 5: CUPONES */}
+      {activeTab === 'coupons' && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 shadow-xs max-w-xl">
+            <h3 className="font-bold text-sm text-neutral-900 mb-4">Crear Nuevo Cupón</h3>
+            <form onSubmit={handleCrearCupon} className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-neutral-700 mb-1">Código</label>
+                  <input
+                    type="text"
+                    value={formCuponCodigo}
+                    onChange={(e) => setFormCuponCodigo(e.target.value)}
+                    placeholder="GIANNIZI10"
+                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl uppercase font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-neutral-700 mb-1">% de Descuento</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={formCuponDescuento}
+                    onChange={(e) => setFormCuponDescuento(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-neutral-700 mb-1">Descripción (opcional)</label>
+                <input
+                  type="text"
+                  value={formCuponDescripcion}
+                  onChange={(e) => setFormCuponDescripcion(e.target.value)}
+                  placeholder="Ej: Cupón de bienvenida para suscriptores"
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={creandoCupon}
+                className="w-full py-2.5 bg-neutral-900 hover:bg-amber-500 hover:text-neutral-950 text-amber-400 font-bold rounded-xl shadow-md transition-all disabled:opacity-60"
+              >
+                {creandoCupon ? 'Creando...' : 'Crear Cupón'}
+              </button>
+            </form>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 shadow-xs">
+            <h3 className="font-bold text-sm text-neutral-900 mb-4">Cupones Existentes</h3>
+            {cupones.length === 0 ? (
+              <p className="text-xs text-neutral-500">Todavía no creaste ningún cupón.</p>
+            ) : (
+              <div className="space-y-2">
+                {cupones.map((c) => (
+                  <div key={c.id} className="flex items-center justify-between p-3 rounded-xl bg-neutral-50 border border-neutral-200 text-xs">
+                    <div>
+                      <span className="font-mono font-bold text-neutral-900">{c.code}</span>
+                      <span className="ml-2 text-amber-700 font-bold">{c.discount_percent}% OFF</span>
+                      {c.description && <p className="text-neutral-500 mt-0.5">{c.description}</p>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleCuponActivo(c.id, !c.active)}
+                        className={`px-2.5 py-1 rounded-lg font-bold text-[11px] ${
+                          c.active
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-neutral-200 text-neutral-500'
+                        }`}
+                      >
+                        {c.active ? 'Activo' : 'Inactivo'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`¿Eliminar el cupón ${c.code}?`)) deleteCupon(c.id);
+                        }}
+                        className="p-1.5 text-neutral-400 hover:text-rose-600 bg-neutral-100 hover:bg-rose-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

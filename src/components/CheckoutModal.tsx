@@ -19,6 +19,8 @@ export const CheckoutModal: React.FC = () => {
   const { 
     cart, 
     cartTotal, 
+    appliedCoupon,
+    applyCoupon,
     appliedDiscountPercent, 
     isCheckoutOpen, 
     setIsCheckoutOpen,
@@ -30,6 +32,9 @@ export const CheckoutModal: React.FC = () => {
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [copiedCbu, setCopiedCbu] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
+  const [cuponInput, setCuponInput] = useState('');
+  const [cuponMensaje, setCuponMensaje] = useState<{ texto: string; ok: boolean } | null>(null);
+  const [validandoCupon, setValidandoCupon] = useState(false);
 
   // Form Fields
   const [customerName, setCustomerName] = useState('');
@@ -51,6 +56,15 @@ export const CheckoutModal: React.FC = () => {
   const shippingCost = shippingMethod === 'Retiro en Local' ? 0 : shippingMethod === 'Envío a Domicilio' ? 3500 : 2500;
   
   const finalTotal = Math.max(0, cartTotal - totalDiscount + shippingCost);
+
+  const handleAplicarCupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cuponInput.trim()) return;
+    setValidandoCupon(true);
+    const resultado = await applyCoupon(cuponInput.trim());
+    setCuponMensaje({ texto: resultado.message, ok: resultado.success });
+    setValidandoCupon(false);
+  };
 
   const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -385,6 +399,34 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                     </p>
                   </div>
                 </div>
+              )}
+            </div>
+
+            {/* Cupón de descuento */}
+            <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-2">
+              <label className="block font-bold text-neutral-700 text-xs">¿Tenés un cupón de descuento?</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={cuponInput}
+                  onChange={(e) => setCuponInput(e.target.value)}
+                  placeholder="Ej: GIANNIZI10"
+                  disabled={!!appliedCoupon}
+                  className="flex-1 px-3 py-2 text-xs bg-white border border-neutral-300 rounded-xl uppercase focus:ring-2 focus:ring-amber-500 focus:outline-none disabled:opacity-60"
+                />
+                <button
+                  type="button"
+                  onClick={handleAplicarCupon}
+                  disabled={validandoCupon || !!appliedCoupon}
+                  className="px-4 py-2 rounded-xl bg-neutral-900 text-amber-400 text-xs font-bold hover:bg-neutral-800 disabled:opacity-60"
+                >
+                  {appliedCoupon ? 'Aplicado' : validandoCupon ? 'Validando...' : 'Aplicar'}
+                </button>
+              </div>
+              {cuponMensaje && (
+                <p className={`text-[11px] font-semibold ${cuponMensaje.ok ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {cuponMensaje.texto}
+                </p>
               )}
             </div>
 

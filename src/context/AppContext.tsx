@@ -44,7 +44,7 @@ interface AppContextType {
   cartTotal: number;
   cartCount: number;
   appliedCoupon: string | null;
-  applyCoupon: (code: string) => { success: boolean; message: string; discountPercent: number };
+  applyCoupon: (code: string) => Promise<{ success: boolean; message: string; discountPercent: number }>;
   appliedDiscountPercent: number;
 
   // Inventory & Order actions
@@ -75,6 +75,12 @@ interface AppContextType {
     warrantyText: string;
     paymentMethodsEnabled: string[];
   }) => Promise<void>;
+
+  // Cupones
+  cupones: any[];
+  addCupon: (nuevo: { code: string; discountPercent: number; description: string }) => Promise<void>;
+  toggleCuponActivo: (id: string, active: boolean) => Promise<void>;
+  deleteCupon: (id: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -366,9 +372,96 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const cartTotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const applyCoupon = (code: string) => {
-    // Los cupones de descuento fueron discontinuados.
-    return { success: false, message: 'Por el momento no contamos con cupones de descuento.', discountPercent: 0 };
+  const applyCoupon = async (code: string) => {
+    const cleanCode = code.trim().toUpperCase();
+
+    if (!cleanCode) {
+      return { success: false, message: 'Ingresá un código de cupón.', discountPercent: 0 };
+    }
+
+    const { data, error } = await supabase
+      .from('cupones')
+      .select('*')
+      .eq('code', cleanCode)
+      .eq('active', true)
+      .maybeSingle();
+
+    if (error) {
+      console.error(error);
+      return { success: false, message: 'No se pudo validar el cupón. Probá de nuevo.', discountPercent: 0 };
+    }
+
+    if (!data) {
+      return { success: false, message: 'Cupón inválido o inactivo.', discountPercent: 0 };
+    }
+
+    setAppliedCoupon(cleanCode);
+    setAppliedDiscountPercent(Number(data.discount_percent));
+    showToast(`🎉 ¡Cupón aplicado! ${data.discount_percent}% de descuento concedido.`);
+    return {
+      success: true,
+      message: `¡Cupón de ${data.discount_percent}% aplicado con éxito!`,
+      discountPercent: Number(data.discount_percent),
+    };
+  };
+
+  // Gestión de cupones (panel admin)
+  const [cupones, setCupones] = useState<any[]>([]);
+
+  const cargarCupones = async () => {
+    const { data, error } = await supabase
+      .from('cupones')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setCupones(data || []);
+  };
+
+  useEffect(() => {
+    cargarCupones();
+  }, []);
+
+  const addCupon = async (nuevo: { code: string; discountPercent: number; description: string }) => {
+    const { error } = await supabase.from('cupones').insert([{
+      code: nuevo.code.trim().toUpperCase(),
+      discount_percent: nuevo.discountPercent,
+      description: nuevo.description,
+      active: true,
+    }]);
+
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo crear el cupón: ${error.message}`);
+      return;
+    }
+
+    showToast('✅ Cupón creado');
+    await cargarCupones();
+  };
+
+  const toggleCuponActivo = async (id: string, active: boolean) => {
+    const { error } = await supabase.from('cupones').update({ active }).eq('id', id);
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo actualizar el cupón: ${error.message}`);
+      return;
+    }
+    await cargarCupones();
+  };
+
+  const deleteCupon = async (id: string) => {
+    const { error } = await supabase.from('cupones').delete().eq('id', id);
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo eliminar el cupón: ${error.message}`);
+      return;
+    }
+    showToast('Cupón eliminado');
+    await cargarCupones();
   };
 
   // Inventory Management — ahora contra Supabase
@@ -560,7 +653,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toastMessage,
         showToast,
         siteSettings,
-        updateSiteSettings
+        updateSiteSettings,
+        cupones,
+        addCupon,
+        toggleCuponActivo,
+        deleteCupon
       }}
     >
       {children}
