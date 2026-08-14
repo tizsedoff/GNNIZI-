@@ -23,7 +23,8 @@ export const CheckoutModal: React.FC = () => {
     isCheckoutOpen, 
     setIsCheckoutOpen,
     createOrder,
-    showToast
+    showToast,
+    siteSettings
   } = useApp();
 
   const [step, setStep] = useState<'form' | 'success'>('form');
@@ -69,7 +70,7 @@ export const CheckoutModal: React.FC = () => {
       customerEmail,
       customerPhone,
       customerDni,
-      shippingAddress: shippingMethod === 'Retiro en Local' ? 'Retiro por Depósito Central (Av. Rivadavia 650, El Soberbio, Misiones  )' : shippingAddress,
+      shippingAddress: shippingMethod === 'Retiro en Local' ? 'Retiro por Depósito Central (Av. Rivadavia 650, El Soberbio, Misiones)' : shippingAddress,
       shippingMethod,
       paymentMethod,
       items: cart,
@@ -174,7 +175,7 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                   <input
                     type="tel"
                     required
-                    placeholder="+54 9 11 3755 266056"
+                    placeholder="+54 9 3755 266056"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
@@ -234,7 +235,7 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                     <Building2 className="w-4 h-4 text-amber-600" />
                     <span className="font-bold text-neutral-900">Retiro en Depósito</span>
                   </div>
-                  <span className="text-[11px] text-emerald-600 font-bold">¡GRATIS! (Av Rivadavia 650 El Soberbio, Misiones)</span>
+                  <span className="text-[11px] text-emerald-600 font-bold">¡GRATIS! (El Soberbio)</span>
                 </label>
 
                 <label className={`p-3 rounded-2xl border cursor-pointer flex flex-col justify-between space-y-2 transition-all ${
@@ -263,7 +264,7 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                   <input
                     type="text"
                     required
-                    placeholder="Ej. Av. Santa Fe 1820 4° B, C1059, CABA"
+                    placeholder="Ej. Av. Rivadavia 650, El Soberbio, Misiones"
                     value={shippingAddress}
                     onChange={(e) => setShippingAddress(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
@@ -278,82 +279,114 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                 <span className="w-5 h-5 rounded-full bg-neutral-900 text-amber-400 text-xs font-black flex items-center justify-center">3</span>
                 Medio de Pago Seleccionado
               </h3>
-            </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 
                 {/* Transferencia */}
-                <label className={`p-3.5 rounded-2xl border cursor-pointer flex items-start space-x-3 transition-all ${
-                  paymentMethod === 'Transferencia Bancaria (5% OFF)' ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-400' : 'border-neutral-200 bg-neutral-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'Transferencia Bancaria (5% OFF)'}
-                    onChange={() => setPaymentMethod('Transferencia Bancaria (5% OFF)')}
-                    className="accent-amber-500 mt-1"
-                  />
-                  <div>
-                    <span className="font-bold text-neutral-900 block">Transferencia Bancaria</span>
-                    <span className="text-[11px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded inline-block mt-0.5">
-                      🔥 5% OFF Automático
-                    </span>
-                  </div>
-                </label>
+                {siteSettings.paymentMethodsEnabled.includes('transferencia') && (
+                  <label className={`p-3.5 rounded-2xl border cursor-pointer flex items-start space-x-3 transition-all ${
+                    paymentMethod === 'Transferencia Bancaria (5% OFF)' ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-400' : 'border-neutral-200 bg-neutral-50'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="payment"
+                      checked={paymentMethod === 'Transferencia Bancaria (5% OFF)'}
+                      onChange={() => setPaymentMethod('Transferencia Bancaria (5% OFF)')}
+                      className="accent-amber-500 mt-1"
+                    />
+                    <div>
+                      <span className="font-bold text-neutral-900 block">Transferencia Bancaria</span>
+                      <span className="text-[11px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded inline-block mt-0.5">
+                        🔥 5% OFF Automático
+                      </span>
+                    </div>
+                  </label>
+                )}
 
                 {/* Mercado Pago */}
-                <label className={`p-3.5 rounded-2xl border cursor-pointer flex items-start space-x-3 transition-all ${
-                  paymentMethod === 'Mercado Pago' ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-400' : 'border-neutral-200 bg-neutral-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'Mercado Pago'}
-                    onChange={() => setPaymentMethod('Mercado Pago')}
-                    className="accent-amber-500 mt-1"
-                  />
-                  <div>
-                    <span className="font-bold text-neutral-900 block">Mercado Pago / Dinero en Cuenta</span>
-                    <span className="text-[11px] text-neutral-500">QR / Débito / Saldo instantáneo</span>
-                  </div>
-                </label>
+                {siteSettings.paymentMethodsEnabled.includes('mercadopago') && (
+                  <label className={`p-3.5 rounded-2xl border cursor-pointer flex items-start space-x-3 transition-all ${
+                    paymentMethod === 'Mercado Pago' ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-400' : 'border-neutral-200 bg-neutral-50'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="payment"
+                      checked={paymentMethod === 'Mercado Pago'}
+                      onChange={() => setPaymentMethod('Mercado Pago')}
+                      className="accent-amber-500 mt-1"
+                    />
+                    <div>
+                      <span className="font-bold text-neutral-900 block">Mercado Pago / Dinero en Cuenta</span>
+                      <span className="text-[11px] text-neutral-500">QR / Débito / Saldo instantáneo</span>
+                    </div>
+                  </label>
+                )}
 
                 {/* Tarjetas */}
-                <label className={`p-3.5 rounded-2xl border cursor-pointer flex items-start space-x-3 transition-all ${
-                  paymentMethod === 'Tarjeta en Cuotas' ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-400' : 'border-neutral-200 bg-neutral-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'Tarjeta en Cuotas'}
-                    onChange={() => setPaymentMethod('Tarjeta en Cuotas')}
-                    className="accent-amber-500 mt-1"
-                  />
-                  <div>
-                    <span className="font-bold text-neutral-900 block">Tarjeta de Crédito</span>
-                    <span className="text-[11px] text-neutral-500">Hasta 3 y 6 cuotas fijas</span>
-                  </div>
-                </label>
+                {siteSettings.paymentMethodsEnabled.includes('tarjeta') && (
+                  <label className={`p-3.5 rounded-2xl border cursor-pointer flex items-start space-x-3 transition-all ${
+                    paymentMethod === 'Tarjeta en Cuotas' ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-400' : 'border-neutral-200 bg-neutral-50'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="payment"
+                      checked={paymentMethod === 'Tarjeta en Cuotas'}
+                      onChange={() => setPaymentMethod('Tarjeta en Cuotas')}
+                      className="accent-amber-500 mt-1"
+                    />
+                    <div>
+                      <span className="font-bold text-neutral-900 block">Tarjeta de Crédito</span>
+                      <span className="text-[11px] text-neutral-500">{siteSettings.installmentsText}</span>
+                    </div>
+                  </label>
+                )}
 
                 {/* Efectivo */}
-                <label className={`p-3.5 rounded-2xl border cursor-pointer flex items-start space-x-3 transition-all ${
-                  paymentMethod === 'Efectivo contra entrega' ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-400' : 'border-neutral-200 bg-neutral-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'Efectivo contra entrega'}
-                    onChange={() => setPaymentMethod('Efectivo contra entrega')}
-                    className="accent-amber-500 mt-1"
-                  />
-                  <div>
-                    <span className="font-bold text-neutral-900 block">Efectivo en Local</span>
-                    <span className="text-[11px] text-neutral-500">Pago en mano al retirar</span>
-                  </div>
-                </label>
+                {siteSettings.paymentMethodsEnabled.includes('efectivo') && (
+                  <label className={`p-3.5 rounded-2xl border cursor-pointer flex items-start space-x-3 transition-all ${
+                    paymentMethod === 'Efectivo contra entrega' ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-400' : 'border-neutral-200 bg-neutral-50'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="payment"
+                      checked={paymentMethod === 'Efectivo contra entrega'}
+                      onChange={() => setPaymentMethod('Efectivo contra entrega')}
+                      className="accent-amber-500 mt-1"
+                    />
+                    <div>
+                      <span className="font-bold text-neutral-900 block">Efectivo en Local</span>
+                      <span className="text-[11px] text-neutral-500">Pago en mano al retirar</span>
+                    </div>
+                  </label>
+                )}
 
               </div>
 
-             
+              {/* Transfer Details Card */}
+              {paymentMethod === 'Transferencia Bancaria (5% OFF)' && (
+                <div className="p-4 rounded-2xl bg-neutral-900 text-white space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-amber-400 font-bold">
+                    <span>Datos bancarios para transferencia:</span>
+                    <span>Ahorro: -${transferDiscount.toLocaleString('es-AR')}</span>
+                  </div>
+                  <div className="font-mono space-y-1 text-neutral-300">
+                    <p>Banco: <strong className="text-white">Banco Galicia</strong></p>
+                    <p>Titular: <strong className="text-white">GIANNIZI IMPORTS S.A.</strong></p>
+                    <p className="flex items-center justify-between">
+                      <span>CBU: <strong className="text-white">0070123420000012345678</strong></span>
+                      <button 
+                        type="button" 
+                        onClick={() => copyToClipboard('0070123420000012345678')}
+                        className="text-amber-400 hover:underline flex items-center gap-1 font-bold"
+                      >
+                        {copiedCbu ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedCbu ? '¡Copiado!' : 'Copiar CBU'}
+                      </button>
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Total Breakdown Summary */}
             <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-2 text-xs">

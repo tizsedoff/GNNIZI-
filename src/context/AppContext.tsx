@@ -61,8 +61,20 @@ interface AppContextType {
   showToast: (msg: string) => void;
 
   // Site settings (redes sociales, etc.)
-  siteSettings: { instagramUrl: string; facebookUrl: string };
-  updateSiteSettings: (settings: { instagramUrl: string; facebookUrl: string }) => Promise<void>;
+  siteSettings: {
+    instagramUrl: string;
+    facebookUrl: string;
+    installmentsText: string;
+    warrantyText: string;
+    paymentMethodsEnabled: string[];
+  };
+  updateSiteSettings: (settings: {
+    instagramUrl: string;
+    facebookUrl: string;
+    installmentsText: string;
+    warrantyText: string;
+    paymentMethodsEnabled: string[];
+  }) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -133,9 +145,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   // Site Settings (redes sociales, etc.) — vive en Supabase, tabla site_settings
-  const [siteSettings, setSiteSettings] = useState<{ instagramUrl: string; facebookUrl: string }>({
+  const [siteSettings, setSiteSettings] = useState<{
+    instagramUrl: string;
+    facebookUrl: string;
+    installmentsText: string;
+    warrantyText: string;
+    paymentMethodsEnabled: string[];
+  }>({
     instagramUrl: '',
     facebookUrl: '',
+    installmentsText: 'Hasta 3 y 6 cuotas fijas sin interés',
+    warrantyText: 'Garantía directa de fábrica de 30 días en todos nuestros productos',
+    paymentMethodsEnabled: ['transferencia', 'mercadopago', 'tarjeta', 'efectivo'],
   });
 
   const cargarSiteSettings = async () => {
@@ -154,6 +175,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSiteSettings({
         instagramUrl: data.instagram_url || '',
         facebookUrl: data.facebook_url || '',
+        installmentsText: data.installments_text || 'Hasta 3 y 6 cuotas fijas sin interés',
+        warrantyText: data.warranty_text || 'Garantía directa de fábrica de 30 días en todos nuestros productos',
+        paymentMethodsEnabled: Array.isArray(data.payment_methods_enabled)
+          ? data.payment_methods_enabled
+          : ['transferencia', 'mercadopago', 'tarjeta', 'efectivo'],
       });
     }
   };
@@ -162,12 +188,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     cargarSiteSettings();
   }, []);
 
-  const updateSiteSettings = async (settings: { instagramUrl: string; facebookUrl: string }) => {
+  const updateSiteSettings = async (settings: {
+    instagramUrl: string;
+    facebookUrl: string;
+    installmentsText: string;
+    warrantyText: string;
+    paymentMethodsEnabled: string[];
+  }) => {
     const { error } = await supabase
       .from('site_settings')
       .update({
         instagram_url: settings.instagramUrl,
         facebook_url: settings.facebookUrl,
+        installments_text: settings.installmentsText,
+        warranty_text: settings.warrantyText,
+        payment_methods_enabled: settings.paymentMethodsEnabled,
       })
       .eq('id', 1);
 
@@ -178,7 +213,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     setSiteSettings(settings);
-    showToast('✅ Configuración de redes sociales actualizada');
+    showToast('✅ Configuración actualizada');
   };
 
   // Cart State

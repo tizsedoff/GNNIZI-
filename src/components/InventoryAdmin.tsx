@@ -68,20 +68,38 @@ export const InventoryAdmin: React.FC = () => {
 
   const categories: Category[] = ['Bazar', 'Papelería', 'Hogar', 'Regalería', 'Oficina', 'Novedades'];
 
-  // Configuración del sitio (redes sociales)
+  // Configuración del sitio (redes sociales, cuotas, garantía, medios de pago)
   const [formInstagram, setFormInstagram] = useState('');
   const [formFacebook, setFormFacebook] = useState('');
+  const [formCuotas, setFormCuotas] = useState('');
+  const [formGarantia, setFormGarantia] = useState('');
+  const [formMediosPago, setFormMediosPago] = useState<string[]>([]);
   const [guardandoSettings, setGuardandoSettings] = useState(false);
 
   useEffect(() => {
     setFormInstagram(siteSettings.instagramUrl);
     setFormFacebook(siteSettings.facebookUrl);
+    setFormCuotas(siteSettings.installmentsText);
+    setFormGarantia(siteSettings.warrantyText);
+    setFormMediosPago(siteSettings.paymentMethodsEnabled);
   }, [siteSettings]);
+
+  const toggleMedioPago = (medio: string) => {
+    setFormMediosPago(prev =>
+      prev.includes(medio) ? prev.filter(m => m !== medio) : [...prev, medio]
+    );
+  };
 
   const handleGuardarSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setGuardandoSettings(true);
-    await updateSiteSettings({ instagramUrl: formInstagram.trim(), facebookUrl: formFacebook.trim() });
+    await updateSiteSettings({
+      instagramUrl: formInstagram.trim(),
+      facebookUrl: formFacebook.trim(),
+      installmentsText: formCuotas.trim(),
+      warrantyText: formGarantia.trim(),
+      paymentMethodsEnabled: formMediosPago,
+    });
     setGuardandoSettings(false);
   };
 
@@ -636,13 +654,13 @@ export const InventoryAdmin: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: SITE SETTINGS (Redes Sociales) */}
+      {/* TAB 4: SITE SETTINGS (Redes Sociales, Cuotas, Garantía, Medios de Pago) */}
       {activeTab === 'settings' && (
-        <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 space-y-6 shadow-xs max-w-xl">
+        <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 space-y-6 shadow-xs max-w-2xl">
           <div className="border-b border-neutral-100 pb-3">
-            <h3 className="font-bold text-sm text-neutral-900">Redes Sociales</h3>
+            <h3 className="font-bold text-sm text-neutral-900">Configuración General</h3>
             <p className="text-xs text-neutral-500 mt-1">
-              Estos links se usan en los íconos del pie de página. Dejalo vacío si todavía no tenés esa red social — el ícono no se muestra si el campo está vacío.
+              Redes sociales, cuotas, garantía y medios de pago activos en todo el sitio.
             </p>
           </div>
 
@@ -667,6 +685,62 @@ export const InventoryAdmin: React.FC = () => {
                 placeholder="https://facebook.com/giannizi.imports"
                 className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
+            </div>
+
+            <div className="pt-4 border-t border-neutral-100">
+              <label className="block font-bold text-neutral-700 mb-1">Texto de Cuotas</label>
+              <p className="text-[10px] text-neutral-400 mb-1">Se muestra en Checkout y en la página de Medios de Pago.</p>
+              <input
+                type="text"
+                value={formCuotas}
+                onChange={(e) => setFormCuotas(e.target.value)}
+                placeholder="Ej: Hasta 3 y 6 cuotas fijas sin interés"
+                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-neutral-700 mb-1">Texto de Garantía</label>
+              <p className="text-[10px] text-neutral-400 mb-1">Se muestra en el pie de página y en Medios de Pago.</p>
+              <textarea
+                rows={2}
+                value={formGarantia}
+                onChange={(e) => setFormGarantia(e.target.value)}
+                placeholder="Ej: Garantía directa de fábrica de 30 días en todos nuestros productos"
+                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-neutral-700 mb-2">Medios de Pago Activos</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { key: 'transferencia', label: 'Transferencia Bancaria' },
+                  { key: 'mercadopago', label: 'Mercado Pago' },
+                  { key: 'tarjeta', label: 'Tarjeta de Crédito' },
+                  { key: 'efectivo', label: 'Efectivo en Local' },
+                ].map((medio) => (
+                  <label
+                    key={medio.key}
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer transition-colors ${
+                      formMediosPago.includes(medio.key)
+                        ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold'
+                        : 'bg-neutral-50 border-neutral-200 text-neutral-500'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formMediosPago.includes(medio.key)}
+                      onChange={() => toggleMedioPago(medio.key)}
+                      className="accent-amber-500"
+                    />
+                    {medio.label}
+                  </label>
+                ))}
+              </div>
+              <p className="text-[10px] text-neutral-400 mt-2">
+                Desmarcá un medio de pago para que deje de aparecer como opción en el Checkout.
+              </p>
             </div>
 
             <button

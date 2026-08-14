@@ -60,7 +60,7 @@ export const Footer: React.FC = () => {
             </div>
             <div>
               <h4 className="text-white font-semibold text-sm">Medios de Pago Flexibles</h4>
-              <p className="text-xs text-neutral-400 mt-1">5% OFF con Transferencia, Cuotas en tarjeta y Mercado Pago.</p>
+              <p className="text-xs text-neutral-400 mt-1">5% OFF con Transferencia, {siteSettings.installmentsText}.</p>
             </div>
           </div>
 
@@ -70,7 +70,7 @@ export const Footer: React.FC = () => {
             </div>
             <div>
               <h4 className="text-white font-semibold text-sm">Garantía Directa</h4>
-              <p className="text-xs text-neutral-400 mt-1">Productos probados de fábrica e importación propia asegurada.</p>
+              <p className="text-xs text-neutral-400 mt-1">{siteSettings.warrantyText}</p>
             </div>
           </div>
 
