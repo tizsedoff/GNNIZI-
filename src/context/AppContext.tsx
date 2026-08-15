@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, CartItem, Order, BlogPost, ActiveView, Category, NewsletterSubscriber } from '../types';
-import { INITIAL_BLOG_POSTS } from '../data/initialData';
 import { supabase } from '../supabaseClient';
 
 interface AppContextType {
@@ -8,6 +7,9 @@ interface AppContextType {
   cart: CartItem[];
   orders: Order[];
   blogPosts: BlogPost[];
+  addBlogPost: (post: Omit<BlogPost, 'id' | 'date' | 'readTime'>) => Promise<void>;
+  updateBlogPost: (post: BlogPost) => Promise<void>;
+  deleteBlogPost: (id: string) => Promise<void>;
   activeView: ActiveView;
   setActiveView: (view: ActiveView) => void;
   selectedCategory: Category | 'Todas';
@@ -286,7 +288,101 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeView, setActiveView] = useState<ActiveView>('landing');
   const [selectedCategory, setSelectedCategory] = useState<Category | 'Todas'>('Todas');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [blogPosts] = useState<BlogPost[]>(INITIAL_BLOG_POSTS);
+  // Blog — vive en Supabase, tabla blog_posts
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+
+  const calcularReadTime = (content: string) => {
+    const palabras = content.trim().split(/\s+/).length;
+    const minutos = Math.max(1, Math.round(palabras / 200));
+    return `${minutos} min de lectura`;
+  };
+
+  const mapRowToBlogPost = (row: any): BlogPost => ({
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    excerpt: row.excerpt || '',
+    content: row.content || '',
+    author: row.author || 'Equipo GIANNIZI Imports',
+    date: new Date(row.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' }),
+    image: row.image || '',
+    category: row.category || '',
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    readTime: calcularReadTime(row.content || ''),
+  });
+
+  const cargarBlogPosts = async () => {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setBlogPosts((data || []).map(mapRowToBlogPost));
+  };
+
+  useEffect(() => {
+    cargarBlogPosts();
+  }, []);
+
+  const addBlogPost = async (post: Omit<BlogPost, 'id' | 'date' | 'readTime'>) => {
+    const { error } = await supabase.from('blog_posts').insert([{
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt,
+      content: post.content,
+      author: post.author,
+      image: post.image,
+      category: post.category,
+      tags: post.tags,
+    }]);
+
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo crear la nota: ${error.message}`);
+      return;
+    }
+
+    showToast('✅ Nota de blog publicada');
+    await cargarBlogPosts();
+  };
+
+  const updateBlogPost = async (post: BlogPost) => {
+    const { error } = await supabase.from('blog_posts').update({
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt,
+      content: post.content,
+      author: post.author,
+      image: post.image,
+      category: post.category,
+      tags: post.tags,
+    }).eq('id', post.id);
+
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo guardar la nota: ${error.message}`);
+      return;
+    }
+
+    showToast('Nota actualizada');
+    await cargarBlogPosts();
+  };
+
+  const deleteBlogPost = async (id: string) => {
+    const { error } = await supabase.from('blog_posts').delete().eq('id', id);
+    if (error) {
+      console.error(error);
+      showToast(`No se pudo eliminar la nota: ${error.message}`);
+      return;
+    }
+    showToast('Nota eliminada');
+    await cargarBlogPosts();
+  };
+
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -690,6 +786,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         cart,
         orders,
         blogPosts,
+        addBlogPost,
+        updateBlogPost,
+        deleteBlogPost,
         activeView,
         setActiveView,
         selectedCategory,

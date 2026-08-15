@@ -21,7 +21,7 @@ import {
   Tag
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { Product, Category, Order } from '../types';
+import { Product, Category, Order, BlogPost } from '../types';
 import { supabase } from '../supabaseClient';
 
 export const InventoryAdmin: React.FC = () => {
@@ -43,10 +43,14 @@ export const InventoryAdmin: React.FC = () => {
     cupones,
     addCupon,
     toggleCuponActivo,
-    deleteCupon
+    deleteCupon,
+    blogPosts,
+    addBlogPost,
+    updateBlogPost,
+    deleteBlogPost
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'subscribers' | 'settings' | 'coupons' | 'customers'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'subscribers' | 'settings' | 'coupons' | 'customers' | 'blog'>('inventory');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'Todas'>('Todas');
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
@@ -175,6 +179,120 @@ export const InventoryAdmin: React.FC = () => {
     setFormCuponDescuento(10);
     setFormCuponDescripcion('');
     setCreandoCupon(false);
+  };
+
+  // Blog
+  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false);
+  const [editingBlogPost, setEditingBlogPost] = useState<BlogPost | null>(null);
+  const [formBlogTitle, setFormBlogTitle] = useState('');
+  const [formBlogSlug, setFormBlogSlug] = useState('');
+  const [formBlogExcerpt, setFormBlogExcerpt] = useState('');
+  const [formBlogContent, setFormBlogContent] = useState('');
+  const [formBlogAuthor, setFormBlogAuthor] = useState('Equipo GIANNIZI Imports');
+  const [formBlogImage, setFormBlogImage] = useState('');
+  const [formBlogCategory, setFormBlogCategory] = useState('');
+  const [formBlogTags, setFormBlogTags] = useState('');
+  const [subiendoBlogFoto, setSubiendoBlogFoto] = useState(false);
+  const [guardandoBlogPost, setGuardandoBlogPost] = useState(false);
+  const inputBlogFotoRef = useRef<HTMLInputElement>(null);
+
+  const slugify = (texto: string) =>
+    texto
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+
+  const openAddBlogModal = () => {
+    setEditingBlogPost(null);
+    setFormBlogTitle('');
+    setFormBlogSlug('');
+    setFormBlogExcerpt('');
+    setFormBlogContent('');
+    setFormBlogAuthor('Equipo GIANNIZI Imports');
+    setFormBlogImage('');
+    setFormBlogCategory('');
+    setFormBlogTags('');
+    setIsBlogModalOpen(true);
+  };
+
+  const openEditBlogModal = (post: BlogPost) => {
+    setEditingBlogPost(post);
+    setFormBlogTitle(post.title);
+    setFormBlogSlug(post.slug);
+    setFormBlogExcerpt(post.excerpt);
+    setFormBlogContent(post.content);
+    setFormBlogAuthor(post.author);
+    setFormBlogImage(post.image);
+    setFormBlogCategory(post.category);
+    setFormBlogTags(post.tags.join(', '));
+    setIsBlogModalOpen(true);
+  };
+
+  const handleBlogFotoSeleccionada = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archivo = e.target.files ? e.target.files[0] : null;
+    if (!archivo) return;
+
+    setSubiendoBlogFoto(true);
+    try {
+      const extension = archivo.name.includes('.') ? archivo.name.split('.').pop() : 'jpg';
+      const nombreLimpio = `${Date.now()}.${extension}`;
+
+      const { error: errorSubida } = await supabase.storage.from('blog-fotos').upload(nombreLimpio, archivo);
+      if (errorSubida) throw errorSubida;
+
+      const { data: urlData } = supabase.storage.from('blog-fotos').getPublicUrl(nombreLimpio);
+      setFormBlogImage(urlData.publicUrl);
+      showToast('📷 Foto subida con éxito');
+    } catch (err: any) {
+      console.error(err);
+      showToast(`No se pudo subir la foto: ${err?.message || 'error desconocido'}`);
+    } finally {
+      setSubiendoBlogFoto(false);
+      if (inputBlogFotoRef.current) inputBlogFotoRef.current.value = '';
+    }
+  };
+
+  const handleGuardarBlogPost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formBlogTitle.trim() || !formBlogContent.trim()) {
+      showToast('El título y el contenido son obligatorios.');
+      return;
+    }
+
+    setGuardandoBlogPost(true);
+
+    const tagsArray = formBlogTags.split(',').map(t => t.trim()).filter(Boolean);
+    const slugFinal = formBlogSlug.trim() ? slugify(formBlogSlug) : slugify(formBlogTitle);
+
+    if (editingBlogPost) {
+      await updateBlogPost({
+        ...editingBlogPost,
+        title: formBlogTitle,
+        slug: slugFinal,
+        excerpt: formBlogExcerpt,
+        content: formBlogContent,
+        author: formBlogAuthor,
+        image: formBlogImage,
+        category: formBlogCategory,
+        tags: tagsArray,
+      });
+    } else {
+      await addBlogPost({
+        title: formBlogTitle,
+        slug: slugFinal,
+        excerpt: formBlogExcerpt,
+        content: formBlogContent,
+        author: formBlogAuthor,
+        image: formBlogImage,
+        category: formBlogCategory,
+        tags: tagsArray,
+      });
+    }
+
+    setGuardandoBlogPost(false);
+    setIsBlogModalOpen(false);
   };
 
   // Metrics
@@ -506,6 +624,18 @@ export const InventoryAdmin: React.FC = () => {
         >
           <Users className="w-4 h-4" />
           <span>Clientes ({clientes.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('blog')}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+            activeTab === 'blog' 
+              ? 'bg-neutral-900 text-amber-400 shadow-xs' 
+              : 'text-neutral-600 hover:bg-neutral-100'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>Blog ({blogPosts.length})</span>
         </button>
       </div>
 
@@ -1077,6 +1207,182 @@ export const InventoryAdmin: React.FC = () => {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* TAB 7: BLOG */}
+      {activeTab === 'blog' && (
+        <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-xs p-4 sm:p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+            <h3 className="font-bold text-sm text-neutral-900">Blog & Novedades</h3>
+            <button
+              onClick={openAddBlogModal}
+              className="bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nueva Nota</span>
+            </button>
+          </div>
+
+          {blogPosts.length === 0 ? (
+            <p className="text-xs text-neutral-500">Todavía no publicaste ninguna nota.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {blogPosts.map(post => (
+                <div key={post.id} className="rounded-2xl border border-neutral-200 overflow-hidden">
+                  <img src={post.image} alt={post.title} className="w-full h-32 object-cover bg-neutral-100" />
+                  <div className="p-3 space-y-1.5">
+                    <span className="text-[10px] font-bold text-amber-600 uppercase">{post.category}</span>
+                    <h4 className="text-xs font-bold text-neutral-900 line-clamp-2">{post.title}</h4>
+                    <p className="text-[10px] text-neutral-400">{post.date} • {post.readTime}</p>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={() => openEditBlogModal(post)}
+                        className="flex-1 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-[11px] font-bold flex items-center justify-center gap-1"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" /> Editar
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`¿Eliminar la nota "${post.title}"?`)) deleteBlogPost(post.id);
+                        }}
+                        className="p-1.5 rounded-lg bg-neutral-100 hover:bg-rose-50 text-neutral-500 hover:text-rose-600"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ADD / EDIT BLOG POST MODAL */}
+      {isBlogModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-neutral-950/75 backdrop-blur-xs p-4 flex items-center justify-center animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-neutral-200 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <h3 className="font-bold text-base text-neutral-900">
+                {editingBlogPost ? 'Editar Nota' : 'Nueva Nota de Blog'}
+              </h3>
+              <button onClick={() => setIsBlogModalOpen(false)} className="text-neutral-400 hover:text-neutral-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleGuardarBlogPost} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-neutral-700 mb-1">Título *</label>
+                <input
+                  type="text"
+                  required
+                  value={formBlogTitle}
+                  onChange={(e) => setFormBlogTitle(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-neutral-700 mb-1">Categoría</label>
+                  <input
+                    type="text"
+                    value={formBlogCategory}
+                    onChange={(e) => setFormBlogCategory(e.target.value)}
+                    placeholder="Ej: Papelería & Organización"
+                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-neutral-700 mb-1">Autor</label>
+                  <input
+                    type="text"
+                    value={formBlogAuthor}
+                    onChange={(e) => setFormBlogAuthor(e.target.value)}
+                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-neutral-700 mb-1">Resumen corto (para la lista de notas)</label>
+                <textarea
+                  rows={2}
+                  value={formBlogExcerpt}
+                  onChange={(e) => setFormBlogExcerpt(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-neutral-700 mb-1">Contenido completo *</label>
+                <p className="text-[10px] text-neutral-400 mb-1">Podés usar ### para subtítulos, igual que en las notas de ejemplo.</p>
+                <textarea
+                  rows={8}
+                  required
+                  value={formBlogContent}
+                  onChange={(e) => setFormBlogContent(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-neutral-700 mb-1">Etiquetas (separadas por coma)</label>
+                <input
+                  type="text"
+                  value={formBlogTags}
+                  onChange={(e) => setFormBlogTags(e.target.value)}
+                  placeholder="Papelería, Tendencias, Oficina"
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Foto de portada */}
+              <div>
+                <label className="block font-bold text-neutral-700 mb-1">Foto de Portada</label>
+                <div className="flex items-center gap-3 mb-2">
+                  {formBlogImage && (
+                    <img src={formBlogImage} alt="Vista previa" className="w-16 h-16 rounded-xl object-cover border border-neutral-200 shrink-0" />
+                  )}
+                  <input
+                    ref={inputBlogFotoRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleBlogFotoSeleccionada}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => inputBlogFotoRef.current?.click()}
+                    disabled={subiendoBlogFoto}
+                    className="flex-1 py-2.5 rounded-xl border border-neutral-300 font-bold text-neutral-700 hover:bg-neutral-100 flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {subiendoBlogFoto ? 'Subiendo...' : 'Elegir foto (galería o archivos)'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-neutral-100 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsBlogModalOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-neutral-300 font-bold hover:bg-neutral-100"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={guardandoBlogPost}
+                  className="flex-1 py-2.5 bg-neutral-900 hover:bg-amber-500 hover:text-neutral-950 text-amber-400 font-bold rounded-xl shadow-md transition-all disabled:opacity-60"
+                >
+                  {guardandoBlogPost ? 'Guardando...' : editingBlogPost ? 'Guardar Cambios' : 'Publicar Nota'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
