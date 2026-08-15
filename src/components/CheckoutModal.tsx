@@ -66,7 +66,9 @@ export const CheckoutModal: React.FC = () => {
     setValidandoCupon(false);
   };
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const [enviandoPedido, setEnviandoPedido] = useState(false);
+
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!customerName || !customerEmail || !customerPhone || !customerDni) {
@@ -79,7 +81,9 @@ export const CheckoutModal: React.FC = () => {
       return;
     }
 
-    const newOrder = createOrder({
+    setEnviandoPedido(true);
+
+    const newOrder = await createOrder({
       customerName,
       customerEmail,
       customerPhone,
@@ -94,6 +98,7 @@ export const CheckoutModal: React.FC = () => {
       total: finalTotal
     });
 
+    setEnviandoPedido(false);
     setCreatedOrder(newOrder);
     setStep('success');
   };
@@ -458,9 +463,10 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
             {/* Submit */}
             <button
               type="submit"
-              className="w-full bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-xl transition-all text-sm"
+              disabled={enviandoPedido}
+              className="w-full bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-xl transition-all text-sm disabled:opacity-60"
             >
-              <span>Confirmar Orden de Compra</span>
+              <span>{enviandoPedido ? 'Enviando pedido...' : 'Confirmar Orden de Compra'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 

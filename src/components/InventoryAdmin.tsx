@@ -34,6 +34,7 @@ export const InventoryAdmin: React.FC = () => {
     deleteProduct, 
     updateProductStock,
     updateOrderStatus,
+    deleteOrder,
     resetToInitialData,
     showToast,
     logoutAdmin,
@@ -45,7 +46,7 @@ export const InventoryAdmin: React.FC = () => {
     deleteCupon
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'subscribers' | 'settings' | 'coupons'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'subscribers' | 'settings' | 'coupons' | 'customers'>('inventory');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'Todas'>('Todas');
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
@@ -72,6 +73,50 @@ export const InventoryAdmin: React.FC = () => {
   const inputFotoRef = useRef<HTMLInputElement>(null);
 
   const categories: Category[] = ['Bazar', 'Papelería', 'Hogar', 'Regalería', 'Oficina', 'Novedades'];
+
+  // Pedidos: búsqueda y detalle
+  const [ordersSearch, setOrdersSearch] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const filteredOrders = orders.filter(o => {
+    if (!ordersSearch.trim()) return true;
+    const q = ordersSearch.toLowerCase();
+    return o.id.toLowerCase().includes(q) || o.customerName.toLowerCase().includes(q) || o.customerEmail.toLowerCase().includes(q);
+  });
+
+  // Clientes: agregados a partir de los pedidos (sin tabla propia)
+  const clientes = React.useMemo(() => {
+    const mapa = new Map<string, {
+      nombre: string;
+      email: string;
+      telefono: string;
+      dni: string;
+      cantidadPedidos: number;
+      totalGastado: number;
+      ultimoPedido: string;
+    }>();
+
+    orders.forEach(o => {
+      const clave = o.customerEmail || o.customerPhone;
+      const existente = mapa.get(clave);
+      if (existente) {
+        existente.cantidadPedidos += 1;
+        existente.totalGastado += o.total;
+      } else {
+        mapa.set(clave, {
+          nombre: o.customerName,
+          email: o.customerEmail,
+          telefono: o.customerPhone,
+          dni: o.customerDni,
+          cantidadPedidos: 1,
+          totalGastado: o.total,
+          ultimoPedido: o.date,
+        });
+      }
+    });
+
+    return Array.from(mapa.values()).sort((a, b) => b.totalGastado - a.totalGastado);
+  }, [orders]);
 
   // Configuración del sitio (redes sociales, cuotas, garantía, medios de pago)
   const [formInstagram, setFormInstagram] = useState('');
@@ -450,6 +495,18 @@ export const InventoryAdmin: React.FC = () => {
           <Tag className="w-4 h-4" />
           <span>Cupones ({cupones.length})</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('customers')}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+            activeTab === 'customers' 
+              ? 'bg-neutral-900 text-amber-400 shadow-xs' 
+              : 'text-neutral-600 hover:bg-neutral-100'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>Clientes ({clientes.length})</span>
+        </button>
       </div>
 
       {/* TAB 1: INVENTORY CONTROL TABLE */}
@@ -595,9 +652,19 @@ export const InventoryAdmin: React.FC = () => {
       {/* TAB 2: RECEIVED ORDERS TABLE */}
       {activeTab === 'orders' && (
         <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-xs p-4 sm:p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-3">
             <h3 className="font-bold text-sm text-neutral-900">Histórico de Pedidos de Clientes Web</h3>
-            <span className="text-xs text-neutral-500 font-mono">{orders.length} pedidos en base de datos</span>
+            <div className="relative w-full sm:w-72">
+              <input
+                type="text"
+                placeholder="Buscar por N° de pedido, nombre o email..."
+                value={ordersSearch}
+                onChange={(e) => setOrdersSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-xs bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              />
+              <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            </div>
+            <span className="text-xs text-neutral-500 font-mono shrink-0">{filteredOrders.length} de {orders.length} pedidos</span>
           </div>
 
           <div className="overflow-x-auto">
@@ -609,11 +676,12 @@ export const InventoryAdmin: React.FC = () => {
                   <th className="p-3">Entrega & Pago</th>
                   <th className="p-3">Ítems</th>
                   <th className="p-3">Monto Total</th>
-                  <th className="p-3 text-right rounded-r-xl">Estado de la Orden</th>
+                  <th className="p-3">Estado de la Orden</th>
+                  <th className="p-3 text-right rounded-r-xl">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
-                {orders.map(o => (
+                {filteredOrders.map(o => (
                   <tr key={o.id} className="hover:bg-neutral-50">
                     <td className="p-3 font-mono">
                       <span className="font-bold text-neutral-900 block">#{o.id}</span>
@@ -643,7 +711,7 @@ export const InventoryAdmin: React.FC = () => {
                       ${o.total.toLocaleString('es-AR')}
                     </td>
 
-                    <td className="p-3 text-right">
+                    <td className="p-3">
                       <select
                         value={o.status}
                         onChange={(e: any) => updateOrderStatus(o.id, e.target.value)}
@@ -661,10 +729,88 @@ export const InventoryAdmin: React.FC = () => {
                         <option value="Cancelado">Cancelado</option>
                       </select>
                     </td>
+
+                    <td className="p-3 text-right space-x-2 whitespace-nowrap">
+                      <button
+                        onClick={() => setSelectedOrder(o)}
+                        className="p-1.5 text-neutral-600 hover:text-amber-600 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors"
+                        title="Ver detalle"
+                      >
+                        <Search className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`¿Eliminar el pedido #${o.id}? Esta acción no se puede deshacer.`)) {
+                            deleteOrder(o.id);
+                          }
+                        }}
+                        className="p-1.5 text-neutral-400 hover:text-rose-600 bg-neutral-100 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Eliminar pedido"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Detalle de Pedido */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-neutral-950/75 backdrop-blur-xs p-4 flex items-center justify-center animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-neutral-200 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <h3 className="font-bold text-base text-neutral-900">Pedido #{selectedOrder.id}</h3>
+              <button onClick={() => setSelectedOrder(null)} className="text-neutral-400 hover:text-neutral-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="text-xs space-y-3">
+              <div>
+                <span className="font-bold text-neutral-700 block mb-1">Cliente</span>
+                <p>{selectedOrder.customerName} — DNI/CUIT: {selectedOrder.customerDni}</p>
+                <p>{selectedOrder.customerPhone} · {selectedOrder.customerEmail}</p>
+              </div>
+
+              <div>
+                <span className="font-bold text-neutral-700 block mb-1">Entrega & Pago</span>
+                <p>{selectedOrder.shippingMethod} — {selectedOrder.paymentMethod}</p>
+                <p className="text-neutral-500">{selectedOrder.shippingAddress}</p>
+              </div>
+
+              <div>
+                <span className="font-bold text-neutral-700 block mb-1">Productos</span>
+                <div className="space-y-1.5">
+                  {selectedOrder.items.map((it, idx) => (
+                    <div key={idx} className="flex items-center gap-2 p-2 rounded-xl bg-neutral-50 border border-neutral-100">
+                      <img src={it.product.image} alt={it.product.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                      <div className="flex-1">
+                        <span className="font-semibold block">{it.product.name}</span>
+                        <span className="text-neutral-500">{it.quantity} x ${it.product.price.toLocaleString('es-AR')}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-neutral-100 space-y-1">
+                <div className="flex justify-between"><span>Subtotal:</span><span className="font-mono">${selectedOrder.subtotal.toLocaleString('es-AR')}</span></div>
+                <div className="flex justify-between text-emerald-600"><span>Descuento:</span><span className="font-mono">-${selectedOrder.discount.toLocaleString('es-AR')}</span></div>
+                <div className="flex justify-between"><span>Envío:</span><span className="font-mono">${selectedOrder.shippingCost.toLocaleString('es-AR')}</span></div>
+                <div className="flex justify-between font-black text-sm pt-1 border-t border-neutral-100"><span>Total:</span><span className="font-mono text-amber-600">${selectedOrder.total.toLocaleString('es-AR')}</span></div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSelectedOrder(null)}
+              className="w-full py-2.5 rounded-xl border border-neutral-300 font-bold hover:bg-neutral-100 text-xs"
+            >
+              Cerrar
+            </button>
           </div>
         </div>
       )}
@@ -882,6 +1028,55 @@ export const InventoryAdmin: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* TAB 6: CLIENTES (agregado a partir de los pedidos) */}
+      {activeTab === 'customers' && (
+        <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-xs p-4 sm:p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+            <h3 className="font-bold text-sm text-neutral-900">Clientes (según pedidos realizados)</h3>
+            <span className="text-xs text-neutral-500 font-mono">{clientes.length} clientes distintos</span>
+          </div>
+
+          {clientes.length === 0 ? (
+            <p className="text-xs text-neutral-500">Todavía no hay pedidos, así que no hay clientes para mostrar.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-neutral-900 text-white font-bold uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th className="p-3 rounded-l-xl">Cliente</th>
+                    <th className="p-3">Contacto</th>
+                    <th className="p-3">Pedidos</th>
+                    <th className="p-3">Total Gastado</th>
+                    <th className="p-3 rounded-r-xl">Último Pedido</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {clientes.map((c, i) => (
+                    <tr key={i} className="hover:bg-neutral-50">
+                      <td className="p-3">
+                        <span className="font-bold text-neutral-900 block">{c.nombre}</span>
+                        <span className="text-[10px] text-neutral-400 font-mono">DNI: {c.dni}</span>
+                      </td>
+                      <td className="p-3 text-neutral-600">
+                        <span className="block">{c.telefono}</span>
+                        <span className="block text-[11px] text-neutral-400">{c.email}</span>
+                      </td>
+                      <td className="p-3">
+                        <span className="px-2.5 py-1 rounded-lg bg-neutral-100 font-bold font-mono">{c.cantidadPedidos}</span>
+                      </td>
+                      <td className="p-3 font-black text-amber-600 font-mono">
+                        ${c.totalGastado.toLocaleString('es-AR')}
+                      </td>
+                      <td className="p-3 text-neutral-500">{c.ultimoPedido}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 

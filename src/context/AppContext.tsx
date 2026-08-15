@@ -52,8 +52,9 @@ interface AppContextType {
   updateProduct: (product: Product) => void;
   deleteProduct: (id: string) => void;
   updateProductStock: (id: string, newStock: number) => void;
-  createOrder: (orderData: Omit<Order, 'id' | 'date' | 'status'>) => Order;
+  createOrder: (orderData: Omit<Order, 'id' | 'date' | 'status'>) => Promise<Order>;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  deleteOrder: (orderId: string) => void;
   resetToInitialData: () => void;
 
   // Notifications
@@ -228,11 +229,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Orders State
-  const [orders, setOrders] = useState<Order[]>(() => {
-    const saved = localStorage.getItem('giannizi_orders') || localStorage.getItem('ginazzi_orders');
-    return saved ? JSON.parse(saved) : [];
+  // Orders State — ahora vive en Supabase, tabla pedidos
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  const mapRowToOrder = (row: any): Order => ({
+    dbId: row.id,
+    id: row.order_number,
+    date: new Date(row.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    customerName: row.customer_name,
+    customerEmail: row.customer_email,
+    customerPhone: row.customer_phone,
+    customerDni: row.customer_dni,
+    shippingAddress: row.shipping_address,
+    shippingMethod: row.shipping_method,
+    paymentMethod: row.payment_method,
+    items: row.items || [],
+    subtotal: Number(row.subtotal),
+    discount: Number(row.discount),
+    shippingCost: Number(row.shipping_cost),
+    total: Number(row.total),
+    status: row.status,
   });
+
+  const cargarPedidosDesdeSupabase = async () => {
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setOrders((data || []).map(mapRowToOrder));
+  };
+
+  useEffect(() => {
+    cargarPedidosDesdeSupabase();
+  }, []);
 
   // Subscribers State
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>(() => {
@@ -294,10 +328,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem('giannizi_cart', JSON.stringify(cart));
   }, [cart]);
-
-  useEffect(() => {
-    localStorage.setItem('giannizi_orders', JSON.stringify(orders));
-  }, [orders]);
 
   useEffect(() => {
     localStorage.setItem('giannizi_subscribers', JSON.stringify(subscribers));
@@ -534,13 +564,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Order creation
-  const createOrder = (orderData: Omit<Order, 'id' | 'date' | 'status'>): Order => {
-    const newOrder: Order = {
-      ...orderData,
-      id: `GNZ-${Math.floor(1000 + Math.random() * 9000)}`,
-      date: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      status: 'Pendiente'
-    };
+  const createOrder = async (orderData: Omit<Order, 'id' | 'date' | 'status'>): Promise<Order> => {
+    const orderNumber = `GNZ-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const { data, error } = await supabase
+      .from('pedidos')
+      .insert([{
+        order_number: orderNumber,
+        customer_name: orderData.customerName,
+        customer_email: orderData.customerEmail,
+        customer_phone: orderData.customerPhone,
+        customer_dni: orderData.customerDni,
+        shipping_address: orderData.shippingAddress,
+        shipping_method: orderData.shippingMethod,
+        payment_method: orderData.paymentMethod,
+        items: orderData.items,
+        subtotal: orderData.subtotal,
+        discount: orderData.discount,
+        shipping_cost: orderData.shippingCost,
+        total: orderData.total,
+        status: 'Pendiente',
+      }])
+      .select()
+      .single();
+
+    let newOrder: Order;
+
+    if (error) {
+      console.error('Error al guardar el pedido en Supabase:', error);
+      showToast('⚠️ El pedido se registró local pero no se pudo guardar en el servidor.');
+      // Fallback local para no perder la venta si Supabase falla
+      newOrder = {
+        ...orderData,
+        id: orderNumber,
+        date: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        status: 'Pendiente',
+      };
+    } else {
+      newOrder = mapRowToOrder(data);
+    }
 
     // Descuenta stock local (optimista) y lo sincroniza con Supabase en segundo plano
     setProducts(prev => prev.map(p => {
@@ -567,9 +629,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newOrder;
   };
 
-  const updateOrderStatus = (orderId: string, status: Order['status']) => {
+  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
+    const orden = orders.find(o => o.id === orderId);
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
     showToast(`Estado del pedido #${orderId} cambiado a: ${status}`);
+
+    if (orden?.dbId) {
+      const { error } = await supabase.from('pedidos').update({ status }).eq('id', orden.dbId);
+      if (error) console.error('Error al actualizar estado en Supabase:', error);
+    }
+  };
+
+  const deleteOrder = async (orderId: string) => {
+    const orden = orders.find(o => o.id === orderId);
+    setOrders(prev => prev.filter(o => o.id !== orderId));
+
+    if (orden?.dbId) {
+      const { error } = await supabase.from('pedidos').delete().eq('id', orden.dbId);
+      if (error) {
+        console.error(error);
+        showToast(`No se pudo eliminar el pedido: ${error.message}`);
+        return;
+      }
+    }
+    showToast('Pedido eliminado');
   };
 
   const subscribeNewsletter = (email: string) => {
@@ -649,6 +732,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateProductStock,
         createOrder,
         updateOrderStatus,
+        deleteOrder,
         resetToInitialData,
         toastMessage,
         showToast,

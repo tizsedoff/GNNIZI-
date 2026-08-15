@@ -23,6 +23,7 @@ export interface CartItem {
 }
 
 export interface Order {
+  dbId?: string; // id real en Supabase (uso interno, no se muestra)
   id: string;
   date: string;
   customerName: string;
