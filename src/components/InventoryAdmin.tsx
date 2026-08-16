@@ -21,6 +21,21 @@ import {
   Tag
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from 'recharts';
 import { Product, Category, Order, BlogPost } from '../types';
 import { supabase } from '../supabaseClient';
 
@@ -50,7 +65,7 @@ export const InventoryAdmin: React.FC = () => {
     deleteBlogPost
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'subscribers' | 'settings' | 'coupons' | 'customers' | 'blog'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'orders' | 'subscribers' | 'settings' | 'coupons' | 'customers' | 'blog' | 'stats'>('inventory');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'Todas'>('Todas');
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
@@ -121,6 +136,82 @@ export const InventoryAdmin: React.FC = () => {
 
     return Array.from(mapa.values()).sort((a, b) => b.totalGastado - a.totalGastado);
   }, [orders]);
+
+  // Estadísticas
+  const COLORES_GRAFICO = ['#f59e0b', '#0ea5e9', '#10b981', '#a855f7', '#f43f5e', '#64748b'];
+
+  const pedidosValidos = React.useMemo(() => orders.filter(o => o.status !== 'Cancelado'), [orders]);
+
+  const facturacionTotal = React.useMemo(
+    () => pedidosValidos.reduce((sum, o) => sum + o.total, 0),
+    [pedidosValidos]
+  );
+
+  const facturacionUltimos30Dias = React.useMemo(() => {
+    const hace30Dias = new Date();
+    hace30Dias.setDate(hace30Dias.getDate() - 30);
+    return pedidosValidos
+      .filter(o => o.createdAt && new Date(o.createdAt) >= hace30Dias)
+      .reduce((sum, o) => sum + o.total, 0);
+  }, [pedidosValidos]);
+
+  const ticketPromedio = pedidosValidos.length > 0 ? Math.round(facturacionTotal / pedidosValidos.length) : 0;
+
+  const ventasPorDia = React.useMemo(() => {
+    const dias: { fecha: string; label: string; total: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const fechaKey = d.toISOString().slice(0, 10);
+      dias.push({ fecha: fechaKey, label: d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }), total: 0 });
+    }
+    pedidosValidos.forEach(o => {
+      if (!o.createdAt) return;
+      const fechaKey = new Date(o.createdAt).toISOString().slice(0, 10);
+      const dia = dias.find(d => d.fecha === fechaKey);
+      if (dia) dia.total += o.total;
+    });
+    return dias;
+  }, [pedidosValidos]);
+
+  const pedidosPorEstado = React.useMemo(() => {
+    const estados = ['Pendiente', 'En Preparación', 'Enviado', 'Entregado', 'Cancelado'];
+    return estados.map(estado => ({
+      name: estado,
+      value: orders.filter(o => o.status === estado).length,
+    })).filter(e => e.value > 0);
+  }, [orders]);
+
+  const ventasPorCategoria = React.useMemo(() => {
+    const mapa = new Map<string, number>();
+    pedidosValidos.forEach(o => {
+      o.items.forEach(it => {
+        const cat = it.product.category;
+        mapa.set(cat, (mapa.get(cat) || 0) + it.product.price * it.quantity);
+      });
+    });
+    return Array.from(mapa.entries()).map(([name, total]) => ({ name, total }));
+  }, [pedidosValidos]);
+
+  const productosMasVendidos = React.useMemo(() => {
+    const mapa = new Map<string, { nombre: string; cantidad: number; ingresos: number }>();
+    pedidosValidos.forEach(o => {
+      o.items.forEach(it => {
+        const existente = mapa.get(it.product.id);
+        if (existente) {
+          existente.cantidad += it.quantity;
+          existente.ingresos += it.product.price * it.quantity;
+        } else {
+          mapa.set(it.product.id, {
+            nombre: it.product.name,
+            cantidad: it.quantity,
+            ingresos: it.product.price * it.quantity,
+          });
+        }
+      });
+    });
+    return Array.from(mapa.values()).sort((a, b) => b.cantidad - a.cantidad).slice(0, 5);
+  }, [pedidosValidos]);
 
   // Configuración del sitio (redes sociales, cuotas, garantía, medios de pago, envíos, banner del inicio)
   const [formInstagram, setFormInstagram] = useState('');
@@ -680,6 +771,18 @@ export const InventoryAdmin: React.FC = () => {
         >
           <FileText className="w-4 h-4" />
           <span>Blog ({blogPosts.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('stats')}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+            activeTab === 'stats' 
+              ? 'bg-neutral-900 text-amber-400 shadow-xs' 
+              : 'text-neutral-600 hover:bg-neutral-100'
+          }`}
+        >
+          <TrendingUp className="w-4 h-4" />
+          <span>Estadísticas</span>
         </button>
       </div>
 
@@ -1527,6 +1630,140 @@ export const InventoryAdmin: React.FC = () => {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* TAB 8: ESTADÍSTICAS */}
+      {activeTab === 'stats' && (
+        <div className="space-y-4">
+
+          {/* Métricas principales */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl bg-white border border-neutral-200 shadow-xs space-y-2">
+              <div className="flex items-center justify-between text-neutral-500">
+                <span className="text-xs font-bold uppercase">Facturación Total</span>
+                <DollarSign className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div className="text-xl font-black text-neutral-900 font-mono">${facturacionTotal.toLocaleString('es-AR')}</div>
+              <p className="text-[11px] text-neutral-500">Sin contar pedidos cancelados</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-neutral-200 shadow-xs space-y-2">
+              <div className="flex items-center justify-between text-neutral-500">
+                <span className="text-xs font-bold uppercase">Últimos 30 Días</span>
+                <TrendingUp className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="text-xl font-black text-neutral-900 font-mono">${facturacionUltimos30Dias.toLocaleString('es-AR')}</div>
+              <p className="text-[11px] text-neutral-500">Facturación del último mes</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-neutral-200 shadow-xs space-y-2">
+              <div className="flex items-center justify-between text-neutral-500">
+                <span className="text-xs font-bold uppercase">Ticket Promedio</span>
+                <ShoppingBag className="w-5 h-5 text-sky-600" />
+              </div>
+              <div className="text-xl font-black text-neutral-900 font-mono">${ticketPromedio.toLocaleString('es-AR')}</div>
+              <p className="text-[11px] text-neutral-500">Por pedido válido</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-neutral-200 shadow-xs space-y-2">
+              <div className="flex items-center justify-between text-neutral-500">
+                <span className="text-xs font-bold uppercase">Pedidos Válidos</span>
+                <PackageCheck className="w-5 h-5 text-purple-600" />
+              </div>
+              <div className="text-xl font-black text-neutral-900 font-mono">{pedidosValidos.length}</div>
+              <p className="text-[11px] text-neutral-500">De {orders.length} pedidos totales</p>
+            </div>
+          </div>
+
+          {/* Ventas por día */}
+          <div className="bg-white rounded-2xl border border-neutral-200 p-4 sm:p-6 shadow-xs">
+            <h3 className="font-bold text-sm text-neutral-900 mb-4">Ventas de los Últimos 30 Días</h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={ventasPorDia}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={4} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip 
+                    formatter={(value: number) => [
+                      `$${value.toLocaleString('es-AR')}`, 
+                           'Ventas'
+                           ]} />
+                <Line type="monotone" dataKey="total" stroke="#f59e0b" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Pedidos por estado */}
+            <div className="bg-white rounded-2xl border border-neutral-200 p-4 sm:p-6 shadow-xs">
+              <h3 className="font-bold text-sm text-neutral-900 mb-4">Pedidos por Estado</h3>
+              {pedidosPorEstado.length === 0 ? (
+                <p className="text-xs text-neutral-500">Todavía no hay pedidos.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={240}>
+                  <PieChart>
+                    <Pie data={pedidosPorEstado} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                      {pedidosPorEstado.map((_, index) => (
+                        <Cell key={index} fill={COLORES_GRAFICO[index % COLORES_GRAFICO.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {/* Ventas por categoría */}
+            <div className="bg-white rounded-2xl border border-neutral-200 p-4 sm:p-6 shadow-xs">
+              <h3 className="font-bold text-sm text-neutral-900 mb-4">Ventas por Categoría</h3>
+              {ventasPorCategoria.length === 0 ? (
+                <p className="text-xs text-neutral-500">Todavía no hay ventas.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={ventasPorCategoria}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <Tooltip 
+                            formatter={(value: number) => [`$${value.toLocaleString('es-AR')}`, 'Ventas']} />
+                    <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+                      {ventasPorCategoria.map((_, index) => (
+                        <Cell key={index} fill={COLORES_GRAFICO[index % COLORES_GRAFICO.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* Productos más vendidos */}
+          <div className="bg-white rounded-2xl border border-neutral-200 p-4 sm:p-6 shadow-xs">
+            <h3 className="font-bold text-sm text-neutral-900 mb-4">Top 5 Productos Más Vendidos</h3>
+            {productosMasVendidos.length === 0 ? (
+              <p className="text-xs text-neutral-500">Todavía no hay ventas.</p>
+            ) : (
+              <div className="space-y-2">
+                {productosMasVendidos.map((p, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-neutral-50 border border-neutral-200 text-xs">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-neutral-900 text-amber-400 font-bold flex items-center justify-center text-[10px] shrink-0">
+                        {i + 1}
+                      </span>
+                      <span className="font-bold text-neutral-900">{p.nombre}</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-neutral-500">
+                      <span>{p.cantidad} vendidos</span>
+                      <span className="font-mono font-bold text-amber-700">${p.ingresos.toLocaleString('es-AR')}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
       )}
 

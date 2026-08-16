@@ -278,6 +278,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const mapRowToOrder = (row: any): Order => ({
     dbId: row.id,
+    createdAt: row.created_at,
     id: row.order_number,
     date: new Date(row.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
     customerName: row.customer_name,

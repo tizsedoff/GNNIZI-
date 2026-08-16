@@ -24,6 +24,7 @@ export interface CartItem {
 
 export interface Order {
   dbId?: string; // id real en Supabase (uso interno, no se muestra)
+  createdAt?: string; // fecha real ISO, para gráficos (uso interno)
   id: string;
   date: string;
   customerName: string;
