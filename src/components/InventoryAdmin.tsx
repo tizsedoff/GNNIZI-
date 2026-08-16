@@ -122,7 +122,7 @@ export const InventoryAdmin: React.FC = () => {
     return Array.from(mapa.values()).sort((a, b) => b.totalGastado - a.totalGastado);
   }, [orders]);
 
-  // Configuración del sitio (redes sociales, cuotas, garantía, medios de pago, envíos)
+  // Configuración del sitio (redes sociales, cuotas, garantía, medios de pago, envíos, banner del inicio)
   const [formInstagram, setFormInstagram] = useState('');
   const [formFacebook, setFormFacebook] = useState('');
   const [formCuotas, setFormCuotas] = useState('');
@@ -130,6 +130,12 @@ export const InventoryAdmin: React.FC = () => {
   const [formMediosPago, setFormMediosPago] = useState<string[]>([]);
   const [formEnvioDomicilio, setFormEnvioDomicilio] = useState(3500);
   const [formEnvioExpreso, setFormEnvioExpreso] = useState(2500);
+  const [formHeroTitleMain, setFormHeroTitleMain] = useState('');
+  const [formHeroTitleHighlight, setFormHeroTitleHighlight] = useState('');
+  const [formHeroSubtitle, setFormHeroSubtitle] = useState('');
+  const [formHeroImage, setFormHeroImage] = useState('');
+  const [subiendoHeroFoto, setSubiendoHeroFoto] = useState(false);
+  const inputHeroFotoRef = useRef<HTMLInputElement>(null);
   const [guardandoSettings, setGuardandoSettings] = useState(false);
 
   useEffect(() => {
@@ -140,12 +146,40 @@ export const InventoryAdmin: React.FC = () => {
     setFormMediosPago(siteSettings.paymentMethodsEnabled);
     setFormEnvioDomicilio(siteSettings.shippingDomicilioCost);
     setFormEnvioExpreso(siteSettings.shippingExpresoCost);
+    setFormHeroTitleMain(siteSettings.heroTitleMain);
+    setFormHeroTitleHighlight(siteSettings.heroTitleHighlight);
+    setFormHeroSubtitle(siteSettings.heroSubtitle);
+    setFormHeroImage(siteSettings.heroImage);
   }, [siteSettings]);
 
   const toggleMedioPago = (medio: string) => {
     setFormMediosPago(prev =>
       prev.includes(medio) ? prev.filter(m => m !== medio) : [...prev, medio]
     );
+  };
+
+  const handleHeroFotoSeleccionada = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archivo = e.target.files ? e.target.files[0] : null;
+    if (!archivo) return;
+
+    setSubiendoHeroFoto(true);
+    try {
+      const extension = archivo.name.includes('.') ? archivo.name.split('.').pop() : 'jpg';
+      const nombreLimpio = `${Date.now()}.${extension}`;
+
+      const { error: errorSubida } = await supabase.storage.from('productos-fotos').upload(nombreLimpio, archivo);
+      if (errorSubida) throw errorSubida;
+
+      const { data: urlData } = supabase.storage.from('productos-fotos').getPublicUrl(nombreLimpio);
+      setFormHeroImage(urlData.publicUrl);
+      showToast('📷 Foto subida con éxito');
+    } catch (err: any) {
+      console.error(err);
+      showToast(`No se pudo subir la foto: ${err?.message || 'error desconocido'}`);
+    } finally {
+      setSubiendoHeroFoto(false);
+      if (inputHeroFotoRef.current) inputHeroFotoRef.current.value = '';
+    }
   };
 
   const handleGuardarSettings = async (e: React.FormEvent) => {
@@ -159,6 +193,10 @@ export const InventoryAdmin: React.FC = () => {
       paymentMethodsEnabled: formMediosPago,
       shippingDomicilioCost: Number(formEnvioDomicilio),
       shippingExpresoCost: Number(formEnvioExpreso),
+      heroTitleMain: formHeroTitleMain.trim(),
+      heroTitleHighlight: formHeroTitleHighlight.trim(),
+      heroSubtitle: formHeroSubtitle.trim(),
+      heroImage: formHeroImage,
     });
     setGuardandoSettings(false);
   };
@@ -1089,6 +1127,79 @@ export const InventoryAdmin: React.FC = () => {
                     onChange={(e) => setFormEnvioExpreso(Number(e.target.value))}
                     className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
                   />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-neutral-100 space-y-3">
+              <label className="block font-bold text-neutral-700">Banner Principal del Inicio</label>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-500 mb-1">Título (parte normal)</label>
+                <input
+                  type="text"
+                  value={formHeroTitleMain}
+                  onChange={(e) => setFormHeroTitleMain(e.target.value)}
+                  placeholder="Ej: Calidad y Variedad Multirubro en"
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-500 mb-1">Título (parte destacada, en dorado)</label>
+                <input
+                  type="text"
+                  value={formHeroTitleHighlight}
+                  onChange={(e) => setFormHeroTitleHighlight(e.target.value)}
+                  placeholder="Ej: Bazar & Papelería"
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-500 mb-1">Bajada / descripción</label>
+                <textarea
+                  rows={2}
+                  value={formHeroSubtitle}
+                  onChange={(e) => setFormHeroSubtitle(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-500 mb-1">Foto del banner</label>
+                <p className="text-[10px] text-neutral-400 mb-1">
+                  Si no subís nada acá, se muestra automáticamente la foto del producto marcado como "Más Vendido".
+                </p>
+                <div className="flex items-center gap-3">
+                  {formHeroImage && (
+                    <img src={formHeroImage} alt="Vista previa" className="w-16 h-16 rounded-xl object-cover border border-neutral-200 shrink-0" />
+                  )}
+                  <input
+                    ref={inputHeroFotoRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleHeroFotoSeleccionada}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => inputHeroFotoRef.current?.click()}
+                    disabled={subiendoHeroFoto}
+                    className="flex-1 py-2.5 rounded-xl border border-neutral-300 font-bold text-neutral-700 hover:bg-neutral-100 flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {subiendoHeroFoto ? 'Subiendo...' : 'Elegir foto (galería o archivos)'}
+                  </button>
+                  {formHeroImage && (
+                    <button
+                      type="button"
+                      onClick={() => setFormHeroImage('')}
+                      className="px-3 py-2.5 rounded-xl border border-neutral-300 text-neutral-500 hover:bg-neutral-100 text-[11px] font-bold"
+                    >
+                      Quitar
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

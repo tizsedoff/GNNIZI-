@@ -72,6 +72,10 @@ interface AppContextType {
     paymentMethodsEnabled: string[];
     shippingDomicilioCost: number;
     shippingExpresoCost: number;
+    heroTitleMain: string;
+    heroTitleHighlight: string;
+    heroSubtitle: string;
+    heroImage: string;
   };
   updateSiteSettings: (settings: {
     instagramUrl: string;
@@ -81,6 +85,10 @@ interface AppContextType {
     paymentMethodsEnabled: string[];
     shippingDomicilioCost: number;
     shippingExpresoCost: number;
+    heroTitleMain: string;
+    heroTitleHighlight: string;
+    heroSubtitle: string;
+    heroImage: string;
   }) => Promise<void>;
 
   // Cupones
@@ -166,6 +174,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     paymentMethodsEnabled: string[];
     shippingDomicilioCost: number;
     shippingExpresoCost: number;
+    heroTitleMain: string;
+    heroTitleHighlight: string;
+    heroSubtitle: string;
+    heroImage: string;
   }>({
     instagramUrl: '',
     facebookUrl: '',
@@ -174,6 +186,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     paymentMethodsEnabled: ['transferencia', 'mercadopago', 'tarjeta', 'efectivo'],
     shippingDomicilioCost: 3500,
     shippingExpresoCost: 2500,
+    heroTitleMain: 'Calidad y Variedad Multirubro en',
+    heroTitleHighlight: 'Bazar & Papelería',
+    heroSubtitle: 'Llevamos las últimas tendencias internacionales a tu comercio o tu hogar. Botellas térmicas, insumos de papelería bullet journal, organizadores y novedades con envío a todo el país.',
+    heroImage: '',
   });
 
   const cargarSiteSettings = async () => {
@@ -199,6 +215,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           : ['transferencia', 'mercadopago', 'tarjeta', 'efectivo'],
         shippingDomicilioCost: data.shipping_domicilio_cost != null ? Number(data.shipping_domicilio_cost) : 3500,
         shippingExpresoCost: data.shipping_expreso_cost != null ? Number(data.shipping_expreso_cost) : 2500,
+        heroTitleMain: data.hero_title_main || 'Calidad y Variedad Multirubro en',
+        heroTitleHighlight: data.hero_title_highlight || 'Bazar & Papelería',
+        heroSubtitle: data.hero_subtitle || 'Llevamos las últimas tendencias internacionales a tu comercio o tu hogar. Botellas térmicas, insumos de papelería bullet journal, organizadores y novedades con envío a todo el país.',
+        heroImage: data.hero_image || '',
       });
     }
   };
@@ -215,6 +235,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     paymentMethodsEnabled: string[];
     shippingDomicilioCost: number;
     shippingExpresoCost: number;
+    heroTitleMain: string;
+    heroTitleHighlight: string;
+    heroSubtitle: string;
+    heroImage: string;
   }) => {
     const { error } = await supabase
       .from('site_settings')
@@ -226,6 +250,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         payment_methods_enabled: settings.paymentMethodsEnabled,
         shipping_domicilio_cost: settings.shippingDomicilioCost,
         shipping_expreso_cost: settings.shippingExpresoCost,
+        hero_title_main: settings.heroTitleMain,
+        hero_title_highlight: settings.heroTitleHighlight,
+        hero_subtitle: settings.heroSubtitle,
+        hero_image: settings.heroImage,
       })
       .eq('id', 1);
 

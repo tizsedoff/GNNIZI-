@@ -17,7 +17,7 @@ import { useApp } from '../context/AppContext';
 import { Category } from '../types';
 
 export const HeroLanding: React.FC = () => {
-  const { products, blogPosts, setActiveView, setSelectedCategory, addToCart, setQuickViewProduct } = useApp();
+  const { products, blogPosts, setActiveView, setSelectedCategory, addToCart, setQuickViewProduct, siteSettings } = useApp();
 
   const featuredProducts = products.filter(p => p.featured || p.badge === 'Más Vendido').slice(0, 4);
 
@@ -97,11 +97,11 @@ export const HeroLanding: React.FC = () => {
               </div>
 
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] font-display">
-                Calidad y Variedad Multirubro en <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-200">Bazar & Papelería</span>
+                {siteSettings.heroTitleMain} <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-200">{siteSettings.heroTitleHighlight}</span>
               </h1>
 
               <p className="text-neutral-300 text-sm sm:text-base max-w-2xl leading-relaxed mx-auto lg:mx-0">
-                Llevamos las últimas tendencias internacionales a tu comercio o tu hogar. Botellas térmicas, insumos de papelería bullet journal, organizadores y novedades con envío a todo el país.
+                {siteSettings.heroSubtitle}
               </p>
 
               {/* Action CTA Buttons */}
@@ -148,7 +148,7 @@ export const HeroLanding: React.FC = () => {
             <div className="lg:col-span-5 relative">
               <div className="relative mx-auto max-w-md lg:max-w-none rounded-2xl overflow-hidden border border-neutral-800 shadow-2xl bg-neutral-900">
                 <img 
-                  src={featuredProducts[0]?.image || 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=1000&q=80'} 
+                  src={siteSettings.heroImage || featuredProducts[0]?.image || 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=1000&q=80'} 
                   alt={featuredProducts[0]?.name || 'GIANNIZI Imports Bazar & Papeleria'} 
                   className="w-full h-[380px] sm:h-[420px] object-cover"
                 />
