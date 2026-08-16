@@ -70,6 +70,8 @@ interface AppContextType {
     installmentsText: string;
     warrantyText: string;
     paymentMethodsEnabled: string[];
+    shippingDomicilioCost: number;
+    shippingExpresoCost: number;
   };
   updateSiteSettings: (settings: {
     instagramUrl: string;
@@ -77,6 +79,8 @@ interface AppContextType {
     installmentsText: string;
     warrantyText: string;
     paymentMethodsEnabled: string[];
+    shippingDomicilioCost: number;
+    shippingExpresoCost: number;
   }) => Promise<void>;
 
   // Cupones
@@ -160,12 +164,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     installmentsText: string;
     warrantyText: string;
     paymentMethodsEnabled: string[];
+    shippingDomicilioCost: number;
+    shippingExpresoCost: number;
   }>({
     instagramUrl: '',
     facebookUrl: '',
     installmentsText: 'Hasta 3 y 6 cuotas fijas sin interés',
     warrantyText: 'Garantía directa de fábrica de 30 días en todos nuestros productos',
     paymentMethodsEnabled: ['transferencia', 'mercadopago', 'tarjeta', 'efectivo'],
+    shippingDomicilioCost: 3500,
+    shippingExpresoCost: 2500,
   });
 
   const cargarSiteSettings = async () => {
@@ -189,6 +197,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         paymentMethodsEnabled: Array.isArray(data.payment_methods_enabled)
           ? data.payment_methods_enabled
           : ['transferencia', 'mercadopago', 'tarjeta', 'efectivo'],
+        shippingDomicilioCost: data.shipping_domicilio_cost != null ? Number(data.shipping_domicilio_cost) : 3500,
+        shippingExpresoCost: data.shipping_expreso_cost != null ? Number(data.shipping_expreso_cost) : 2500,
       });
     }
   };
@@ -203,6 +213,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     installmentsText: string;
     warrantyText: string;
     paymentMethodsEnabled: string[];
+    shippingDomicilioCost: number;
+    shippingExpresoCost: number;
   }) => {
     const { error } = await supabase
       .from('site_settings')
@@ -212,6 +224,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         installments_text: settings.installmentsText,
         warranty_text: settings.warrantyText,
         payment_methods_enabled: settings.paymentMethodsEnabled,
+        shipping_domicilio_cost: settings.shippingDomicilioCost,
+        shipping_expreso_cost: settings.shippingExpresoCost,
       })
       .eq('id', 1);
 

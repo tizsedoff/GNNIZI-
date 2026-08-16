@@ -53,7 +53,7 @@ export const CheckoutModal: React.FC = () => {
   
   const totalDiscount = discountFromCoupon + transferDiscount;
   
-  const shippingCost = shippingMethod === 'Retiro en Local' ? 0 : shippingMethod === 'Envío a Domicilio' ? 3500 : 2500;
+  const shippingCost = shippingMethod === 'Retiro en Local' ? 0 : shippingMethod === 'Envío a Domicilio' ? siteSettings.shippingDomicilioCost : siteSettings.shippingExpresoCost;
   
   const finalTotal = Math.max(0, cartTotal - totalDiscount + shippingCost);
 
@@ -237,7 +237,7 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                     <Truck className="w-4 h-4 text-amber-600" />
                     <span className="font-bold text-neutral-900">A Domicilio</span>
                   </div>
-                  <span className="text-[11px] text-neutral-500">$3.500 (Oca / Correo)</span>
+                  <span className="text-[11px] text-neutral-500">${siteSettings.shippingDomicilioCost.toLocaleString('es-AR')} (Oca / Correo)</span>
                 </label>
 
                 <label className={`p-3 rounded-2xl border cursor-pointer flex flex-col justify-between space-y-2 transition-all ${
@@ -271,7 +271,7 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                     <Truck className="w-4 h-4 text-amber-600" />
                     <span className="font-bold text-neutral-900">Expreso / Comprador</span>
                   </div>
-                  <span className="text-[11px] text-neutral-500">$2.500 (Despacho a transporte)</span>
+                  <span className="text-[11px] text-neutral-500">${siteSettings.shippingExpresoCost.toLocaleString('es-AR')} (Despacho a transporte)</span>
                 </label>
               </div>
 
