@@ -688,10 +688,10 @@ export const InventoryAdmin: React.FC = () => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="bg-white rounded-2xl border border-neutral-200 p-2 flex items-center gap-2">
+      <div className="bg-white rounded-2xl border border-neutral-200 p-2 flex items-center gap-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab('inventory')}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+          className={`shrink-0 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors whitespace-nowrap ${
             activeTab === 'inventory' 
               ? 'bg-neutral-900 text-amber-400 shadow-xs' 
               : 'text-neutral-600 hover:bg-neutral-100'
@@ -703,7 +703,7 @@ export const InventoryAdmin: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('orders')}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+          className={`shrink-0 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors whitespace-nowrap ${
             activeTab === 'orders' 
               ? 'bg-neutral-900 text-amber-400 shadow-xs' 
               : 'text-neutral-600 hover:bg-neutral-100'
@@ -715,7 +715,7 @@ export const InventoryAdmin: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('subscribers')}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+          className={`shrink-0 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors whitespace-nowrap ${
             activeTab === 'subscribers' 
               ? 'bg-neutral-900 text-amber-400 shadow-xs' 
               : 'text-neutral-600 hover:bg-neutral-100'
@@ -727,7 +727,7 @@ export const InventoryAdmin: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+          className={`shrink-0 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors whitespace-nowrap ${
             activeTab === 'settings' 
               ? 'bg-neutral-900 text-amber-400 shadow-xs' 
               : 'text-neutral-600 hover:bg-neutral-100'
@@ -739,7 +739,7 @@ export const InventoryAdmin: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('coupons')}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+          className={`shrink-0 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors whitespace-nowrap ${
             activeTab === 'coupons' 
               ? 'bg-neutral-900 text-amber-400 shadow-xs' 
               : 'text-neutral-600 hover:bg-neutral-100'
@@ -751,7 +751,7 @@ export const InventoryAdmin: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('customers')}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+          className={`shrink-0 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors whitespace-nowrap ${
             activeTab === 'customers' 
               ? 'bg-neutral-900 text-amber-400 shadow-xs' 
               : 'text-neutral-600 hover:bg-neutral-100'
@@ -763,7 +763,7 @@ export const InventoryAdmin: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('blog')}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+          className={`shrink-0 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors whitespace-nowrap ${
             activeTab === 'blog' 
               ? 'bg-neutral-900 text-amber-400 shadow-xs' 
               : 'text-neutral-600 hover:bg-neutral-100'
@@ -775,7 +775,7 @@ export const InventoryAdmin: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('stats')}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+          className={`shrink-0 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors whitespace-nowrap ${
             activeTab === 'stats' 
               ? 'bg-neutral-900 text-amber-400 shadow-xs' 
               : 'text-neutral-600 hover:bg-neutral-100'
@@ -1684,11 +1684,7 @@ export const InventoryAdmin: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={4} />
                 <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip 
-                    formatter={(value: number) => [
-                      `$${value.toLocaleString('es-AR')}`, 
-                           'Ventas'
-                           ]} />
+                <Tooltip formatter={(value: any) => [`$${Number(value).toLocaleString('es-AR')}`, 'Ventas']} />
                 <Line type="monotone" dataKey="total" stroke="#f59e0b" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -1726,8 +1722,7 @@ export const InventoryAdmin: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                     <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip 
-                            formatter={(value: number) => [`$${value.toLocaleString('es-AR')}`, 'Ventas']} />
+                    <Tooltip formatter={(value: any) => [`$${Number(value).toLocaleString('es-AR')}`, 'Ventas']} />
                     <Bar dataKey="total" radius={[6, 6, 0, 0]}>
                       {ventasPorCategoria.map((_, index) => (
                         <Cell key={index} fill={COLORES_GRAFICO[index % COLORES_GRAFICO.length]} />
