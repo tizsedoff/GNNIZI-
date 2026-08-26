@@ -67,6 +67,39 @@ export const CheckoutModal: React.FC = () => {
   };
 
   const [enviandoPedido, setEnviandoPedido] = useState(false);
+  const [generandoLinkMP, setGenerandoLinkMP] = useState(false);
+  const [errorMP, setErrorMP] = useState('');
+
+  const handlePagarConMercadoPago = async () => {
+    if (!createdOrder) return;
+    setGenerandoLinkMP(true);
+    setErrorMP('');
+
+    try {
+      const response = await fetch('/api/create-preference', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderNumber: createdOrder.id,
+          total: createdOrder.total,
+          customerName: createdOrder.customerName,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.init_point) {
+        throw new Error(data.error || 'No se pudo generar el link de pago');
+      }
+
+      window.location.href = data.init_point;
+    } catch (err: any) {
+      console.error(err);
+      setErrorMP('No se pudo abrir Mercado Pago. Probá de nuevo o contactanos por WhatsApp.');
+    } finally {
+      setGenerandoLinkMP(false);
+    }
+  };
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -506,6 +539,20 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                 <span className="text-amber-600">${createdOrder.total.toLocaleString('es-AR')}</span>
               </div>
             </div>
+
+            {/* Botón de pago directo si eligió Mercado Pago */}
+            {createdOrder.paymentMethod === 'Mercado Pago' && (
+              <div className="space-y-2">
+                <button
+                  onClick={handlePagarConMercadoPago}
+                  disabled={generandoLinkMP}
+                  className="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-colors text-sm disabled:opacity-60"
+                >
+                  <span>{generandoLinkMP ? 'Abriendo Mercado Pago...' : 'Pagar Ahora con Mercado Pago'}</span>
+                </button>
+                {errorMP && <p className="text-[11px] text-rose-600 font-semibold">{errorMP}</p>}
+              </div>
+            )}
 
             {/* WhatsApp CTA Action Button */}
             <div className="space-y-3">
