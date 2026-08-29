@@ -76,6 +76,10 @@ interface AppContextType {
     heroTitleHighlight: string;
     heroSubtitle: string;
     heroImage: string;
+    bankName: string;
+    bankHolder: string;
+    bankCbu: string;
+    bankAlias: string;
   };
   updateSiteSettings: (settings: {
     instagramUrl: string;
@@ -89,6 +93,10 @@ interface AppContextType {
     heroTitleHighlight: string;
     heroSubtitle: string;
     heroImage: string;
+    bankName: string;
+    bankHolder: string;
+    bankCbu: string;
+    bankAlias: string;
   }) => Promise<void>;
 
   // Cupones
@@ -178,6 +186,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     heroTitleHighlight: string;
     heroSubtitle: string;
     heroImage: string;
+    bankName: string;
+    bankHolder: string;
+    bankCbu: string;
+    bankAlias: string;
   }>({
     instagramUrl: '',
     facebookUrl: '',
@@ -190,6 +202,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     heroTitleHighlight: 'Bazar & Papelería',
     heroSubtitle: 'Llevamos las últimas tendencias internacionales a tu comercio o tu hogar. Botellas térmicas, insumos de papelería bullet journal, organizadores y novedades con envío a todo el país.',
     heroImage: '',
+    bankName: 'Banco Galicia',
+    bankHolder: 'GIANNIZI IMPORTS S.A.',
+    bankCbu: '',
+    bankAlias: '',
   });
 
   const cargarSiteSettings = async () => {
@@ -219,6 +235,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         heroTitleHighlight: data.hero_title_highlight || 'Bazar & Papelería',
         heroSubtitle: data.hero_subtitle || 'Llevamos las últimas tendencias internacionales a tu comercio o tu hogar. Botellas térmicas, insumos de papelería bullet journal, organizadores y novedades con envío a todo el país.',
         heroImage: data.hero_image || '',
+        bankName: data.bank_name || 'Banco Galicia',
+        bankHolder: data.bank_holder || 'GIANNIZI IMPORTS S.A.',
+        bankCbu: data.bank_cbu || '',
+        bankAlias: data.bank_alias || '',
       });
     }
   };
@@ -239,6 +259,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     heroTitleHighlight: string;
     heroSubtitle: string;
     heroImage: string;
+    bankName: string;
+    bankHolder: string;
+    bankCbu: string;
+    bankAlias: string;
   }) => {
     const { error } = await supabase
       .from('site_settings')
@@ -254,6 +278,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         hero_title_highlight: settings.heroTitleHighlight,
         hero_subtitle: settings.heroSubtitle,
         hero_image: settings.heroImage,
+        bank_name: settings.bankName,
+        bank_holder: settings.bankHolder,
+        bank_cbu: settings.bankCbu,
+        bank_alias: settings.bankAlias,
       })
       .eq('id', 1);
 

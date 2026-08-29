@@ -31,6 +31,7 @@ export const CheckoutModal: React.FC = () => {
 
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [copiedCbu, setCopiedCbu] = useState(false);
+  const [copiedAlias, setCopiedAlias] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
   const [cuponInput, setCuponInput] = useState('');
   const [cuponMensaje, setCuponMensaje] = useState<{ texto: string; ok: boolean } | null>(null);
@@ -44,6 +45,9 @@ export const CheckoutModal: React.FC = () => {
   const [shippingAddress, setShippingAddress] = useState('');
   const [shippingMethod, setShippingMethod] = useState<'Retiro en Local' | 'Envío a Domicilio' | 'Expreso Mayorista'>('Envío a Domicilio');
   const [paymentMethod, setPaymentMethod] = useState<'Transferencia Bancaria (5% OFF)' | 'Mercado Pago' | 'Tarjeta en Cuotas' | 'Efectivo contra entrega'>('Transferencia Bancaria (5% OFF)');
+  const [enviandoPedido, setEnviandoPedido] = useState(false);
+  const [generandoLinkMP, setGenerandoLinkMP] = useState(false);
+  const [errorMP, setErrorMP] = useState('');
 
   if (!isCheckoutOpen) return null;
 
@@ -65,10 +69,6 @@ export const CheckoutModal: React.FC = () => {
     setCuponMensaje({ texto: resultado.message, ok: resultado.success });
     setValidandoCupon(false);
   };
-
-  const [enviandoPedido, setEnviandoPedido] = useState(false);
-  const [generandoLinkMP, setGenerandoLinkMP] = useState(false);
-  const [errorMP, setErrorMP] = useState('');
 
   const handlePagarConMercadoPago = async () => {
     if (!createdOrder) return;
@@ -136,10 +136,15 @@ export const CheckoutModal: React.FC = () => {
     setStep('success');
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, tipo: 'cbu' | 'alias' = 'cbu') => {
     navigator.clipboard.writeText(text);
-    setCopiedCbu(true);
-    setTimeout(() => setCopiedCbu(false), 2000);
+    if (tipo === 'cbu') {
+      setCopiedCbu(true);
+      setTimeout(() => setCopiedCbu(false), 2000);
+    } else {
+      setCopiedAlias(true);
+      setTimeout(() => setCopiedAlias(false), 2000);
+    }
   };
 
   const getWhatsAppMessageUrl = (order: Order) => {
@@ -422,19 +427,34 @@ Aguardo confirmación de pago y datos para el envío. Muchas gracias!`;
                     <span>Ahorro: -${transferDiscount.toLocaleString('es-AR')}</span>
                   </div>
                   <div className="font-mono space-y-1 text-neutral-300">
-                    <p>Banco: <strong className="text-white">Banco Galicia</strong></p>
-                    <p>Titular: <strong className="text-white">GIANNIZI IMPORTS S.A.</strong></p>
-                    <p className="flex items-center justify-between">
-                      <span>CBU: <strong className="text-white">0070123420000012345678</strong></span>
-                      <button 
-                        type="button" 
-                        onClick={() => copyToClipboard('0070123420000012345678')}
-                        className="text-amber-400 hover:underline flex items-center gap-1 font-bold"
-                      >
-                        {copiedCbu ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                        {copiedCbu ? '¡Copiado!' : 'Copiar CBU'}
-                      </button>
-                    </p>
+                    <p>Banco: <strong className="text-white">{siteSettings.bankName}</strong></p>
+                    <p>Titular: <strong className="text-white">{siteSettings.bankHolder}</strong></p>
+                    {siteSettings.bankCbu && (
+                      <p className="flex items-center justify-between">
+                        <span>CBU: <strong className="text-white">{siteSettings.bankCbu}</strong></span>
+                        <button 
+                          type="button" 
+                          onClick={() => copyToClipboard(siteSettings.bankCbu, 'cbu')}
+                          className="text-amber-400 hover:underline flex items-center gap-1 font-bold"
+                        >
+                          {copiedCbu ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedCbu ? '¡Copiado!' : 'Copiar CBU'}
+                        </button>
+                      </p>
+                    )}
+                    {siteSettings.bankAlias && (
+                      <p className="flex items-center justify-between">
+                        <span>Alias: <strong className="text-amber-400">{siteSettings.bankAlias}</strong></span>
+                        <button 
+                          type="button" 
+                          onClick={() => copyToClipboard(siteSettings.bankAlias, 'alias')}
+                          className="text-amber-400 hover:underline flex items-center gap-1 font-bold"
+                        >
+                          {copiedAlias ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedAlias ? '¡Copiado!' : 'Copiar Alias'}
+                        </button>
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
